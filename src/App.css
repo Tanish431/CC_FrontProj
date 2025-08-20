@@ -1,0 +1,193 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #fff;
+}
+
+.app {
+  padding: 20px;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px 12px;
+}
+
+.tab.active {
+  color: #fff;
+  border-bottom: 2px solid #4cafef;
+}
+
+.new-task-btn {
+  margin-left: auto;
+  background: #4cafef;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+/* Board */
+.board {
+  display: flex;
+  gap: 20px;
+}
+
+.column {
+  background: #17191a;
+  border-radius: 12px;
+  padding: 12px;
+  flex: 1;
+  min-width: 220px;
+  transition: background 0.2s ease;
+}
+
+.column-over {
+  background: #4f5355; 
+}
+
+.column-title {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-card {
+  position: relative;
+  background: rgb(50, 47, 47);
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.task-card:active {
+  cursor: grabbing;
+}
+.task-card:hover {
+  transform: scale(1.02);
+}
+.task-card button {
+  transition: opacity 0.2s ease;
+}
+.task-title {
+  font-weight: bold;
+  margin: 0;
+}
+
+.task-card.dragging {
+  opacity: 0.9;
+  background: #6e7579; /* highlight overlay */
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  transform: scale(1.05);
+}
+
+/* === Modal Styles === */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal {
+  background: rgb(46, 44, 44);
+  padding: 20px;
+  border-radius: 12px;
+  width: 350px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  animation: fadeIn 0.2s ease;
+}
+
+.modal h2 {
+  margin-bottom: 15px;
+}
+
+.modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal input,
+.modal select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.cancel-btn {
+  background: #dd1515;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.add-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.task-due {
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-top: 6px;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.due-green {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: rgb(5, 150, 105);
+}
+
+.due-yellow {
+  background-color: rgba(250, 204, 21, 0.2);
+  color: rgb(202, 138, 4);
+}
+
+.due-red {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: rgb(220, 38, 38);
+}
+
