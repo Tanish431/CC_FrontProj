@@ -41,18 +41,23 @@ body {
 }
 
 /* Board */
+/* Board: columns only as tall as their content */
 .board {
   display: flex;
   gap: 20px;
+  align-items: flex-start;
 }
 
 .column {
   background: #17191a;
   border-radius: 12px;
   padding: 12px;
-  flex: 1;
   min-width: 220px;
   transition: background 0.2s ease;
+  /* Remove flex: 1 so columns only as tall as their content */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .column-over {
@@ -72,12 +77,13 @@ body {
 
 .task-card {
   position: relative;
-  background: rgb(50, 47, 47);
   padding: 12px;
-  margin-bottom: 8px;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease;
+  overflow: hidden;
+  background: #2c2f33; /* Darker background for task cards */
+  margin-bottom: 5%;
 }
 
 .task-card:active {
@@ -86,9 +92,7 @@ body {
 .task-card:hover {
   transform: scale(1.02);
 }
-.task-card button {
-  transition: opacity 0.2s ease;
-}
+
 .task-title {
   font-weight: bold;
   margin: 0;
@@ -191,3 +195,117 @@ body {
   color: rgb(220, 38, 38);
 }
 
+
+/* Common button styles */
+.task-card button {
+  position: absolute;
+  background-color: transparent; /* Light background for buttons */
+  border: none;
+  padding: 6px;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateX(40px); /* Initially hidden outside the card */
+  transition: all 0.25s ease-in-out;
+}
+
+/* Show buttons on hover */
+.task-card:hover button {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.icon-btn {
+  position: absolute;
+  border: none;
+  padding: 6px;
+  border-radius: 50%;
+  background-color: transparent; /* Invisible background initially */
+  color: #6b7280; /* Default gray icon */
+  cursor: pointer;
+  pointer-events: auto;
+
+  /* Start invisible & slide from right */
+  opacity: 0;
+  transform: translateX(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+
+/* Show only icons on hover */
+.task-card:hover .icon-btn {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Consistent edit button color for all bars */
+.edit-btn {
+  top: 6px;
+  right: 6px;
+  color: #7fbef1;
+}
+
+.delete-btn {
+  bottom: 6px;
+  right: 6px;
+  color: #dc2626;
+}
+
+.delete-btn:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.edit-btn:hover {
+  background-color: rgba(107, 114, 128, 0.1); /* Light gray on hover */
+  color: #2563eb; /* Consistent blue on hover */
+}
+
+/* Non-status cards layout */
+.task-card.non-status .task-content {
+  display: -webkit-box;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Checkbox style */
+.task-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Right-aligned buttons */
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Icon buttons for non-status tabs */
+
+.action-buttons .icon-btn {
+  background-color: transparent;
+  border: none;
+  padding: 4px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #7fbef1;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+
+.action-buttons .icon-btn:hover {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: #2563eb;
+}
+
+.action-buttons .delete-btn {
+  color: #dc2626;
+}
+
+.action-buttons .delete-btn:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}

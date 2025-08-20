@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
   DndContext,
   closestCorners,
   useDroppable,
   DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -35,7 +38,7 @@ function getDueStatus(due) {
 }
 
 // Task Card
-function TaskCard({ task }) {
+function TaskCard({ task, onEdit, onDelete, onToggleDone, activeTab}) {
   const {
     attributes,
     listeners,
@@ -55,41 +58,120 @@ function TaskCard({ task }) {
     task.status === "done"
       ? { text: "🎉 Well Done!!", className: "due-green" }
       : getDueStatus(task.due);
-
   
+  const stopDrag = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
+  // Remove strike-through for completed tab
+  const isCompletedTab = activeTab === "completed";
+  // Hide edit button for completed tasks
+  const showEdit = task.status !== "done";
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className="task-card group relative"
+      className={`task-card group relative ${activeTab === "status" ? "" : "non-status"}`}
     >
-      {/* Edit Button */}
-      <button
-        onClick={() => onEdit(task)}
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition bg-gray-200 hover:bg-gray-300 p-1 rounded-full shadow"
-      >
-        <FiEdit size={16} />
-      </button>
-
-      <p className="task-title">{task.title}</p>
-
+      {activeTab === "status" ? (
+        <>
+          {showEdit && (
+            <button
+              className="icon-btn edit-btn"
+              onPointerDown={stopDrag}
+              onMouseDown={stopDrag}
+              onTouchStart={stopDrag}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(task);
+              }}
+              aria-label="Edit task"
+              style={{ top: 6, right: 6 }}
+            >
+              <FiEdit size={18} />
+            </button>
+          )}
+          <button
+            className="icon-btn delete-btn"
+            onPointerDown={stopDrag}
+            onMouseDown={stopDrag}
+            onTouchStart={stopDrag}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(task);
+            }}
+            aria-label="Delete task"
+            style={{ bottom: 6, right: 6 }}
+          >
+            <AiOutlineDelete size={20} />
+          </button>
+          <p className="task-title">{task.title}</p>
+        </>
+      ) : (
+        <div className="task-content">
+          <input
+            type="checkbox"
+            checked={task.status === "done"}
+            onChange={() => onToggleDone(task)}
+            onPointerDown={stopDrag}
+            onMouseDown={stopDrag}
+            onTouchStart={stopDrag}
+            className="task-checkbox"
+          />
+          <p
+            className="task-title"
+            style={
+              isCompletedTab
+                ? {} // No strike-through for completed tab
+                : task.status === "done"
+                ? { textDecoration: "line-through", color: "#888" }
+                : {}
+            }
+          >
+            {task.title}
+          </p>
+          <div className="action-buttons">
+            {showEdit && (
+              <button
+                className="icon-btn"
+                onPointerDown={stopDrag}
+                onMouseDown={stopDrag}
+                onTouchStart={stopDrag}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(task);
+                }}
+                aria-label="Edit task"
+              >
+                <FiEdit size={18} />
+              </button>
+            )}
+            <button
+              className="icon-btn delete-btn"
+              onPointerDown={stopDrag}
+              onMouseDown={stopDrag}
+              onTouchStart={stopDrag}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(task);
+              }}
+              aria-label="Delete task"
+            >
+              <AiOutlineDelete size={20} />
+            </button>
+          </div>
+        </div>
+      )}
       <div className={`task-due ${dueStatus.className}`}>{dueStatus.text}</div>
-
-      {/* Delete Button */}
-      <button
-        onClick={() => onDelete(task)}
-        className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition bg-red-200 hover:bg-red-300 p-1 rounded-full shadow"
-      >
-        <AiOutlineDelete size={18} />
-      </button>
     </div>
   );
 }
 
 // Column
-function Column({ id, title, tasks, isOver }) {
+function Column({ id, title, tasks, isOver, setEditTask, setDeleteTask, handleToggleDone, activeTab }) {
   const { setNodeRef } = useDroppable({ id });
 
   return (
@@ -99,9 +181,17 @@ function Column({ id, title, tasks, isOver }) {
     >
       <h3>{title}</h3>
       <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onEdit={(task) => setEditTask(task)} onDelete={(task) => setDeleteTask(task)}/>
-        ))}
+        <div className="non-status-view">
+          {tasks.map((task) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            onEdit={(task) => setEditTask(task)}
+            onDelete={(task) => setDeleteTask(task)}
+            onToggleDone={handleToggleDone}
+            activeTab={activeTab}
+          />))}
+        </div>
       </SortableContext>
     </div>
   );
@@ -129,6 +219,15 @@ function NewTaskModal({ isOpen, onClose, onAddTask }) {
     setStatus("not-started");
     onClose();
   };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEsc = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -180,6 +279,11 @@ function EditTaskModal({ isOpen, onClose, task, onUpdate }) {
   const [title, setTitle] = useState(task?.title || "");
   const [due, setDue] = useState(task?.due || "");
 
+  useEffect(() => {
+    setTitle(task?.title || "");
+    setDue(task?.due || "");
+  }, [task]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim() || !due) return;
@@ -188,6 +292,15 @@ function EditTaskModal({ isOpen, onClose, task, onUpdate }) {
     onClose();
   };
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEsc = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose]);
+  
   if (!isOpen) return null;
 
   return createPortal(
@@ -228,6 +341,15 @@ function EditTaskModal({ isOpen, onClose, task, onUpdate }) {
 }
 
 function DeleteConfirmationModal({ isOpen, onClose, onConfirm, task }) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEsc = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return createPortal(
@@ -265,12 +387,15 @@ export default function App() {
   const [editTask, setEditTask] = useState(null);
   const [deleteTask, setDeleteTask] = useState(null);
 
-  const [tasks, setTasks] = useState([
-    { id: "1", title: "Go to the Gym", status: "not-started", due: "2025-08-25" },
-    { id: "2", title: "Learn React DnD Kit", status: "not-started", due: "2025-08-20" },
-    { id: "3", title: "Play Fortnite", status: "in-progress", due: "2025-08-18" },
-    { id: "4", title: "Call mom", status: "done", due: "2025-08-10" },
-  ]);
+  const [tasks, setTasks] = useState(() => {
+    const savedTasks = localStorage.getItem("tasks");
+    return savedTasks ? JSON.parse(savedTasks) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
+
 
   const columns = [
     { key: "not-started", title: "Not Started" },
@@ -335,6 +460,12 @@ export default function App() {
     }
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 6 }, // must move 6px before a drag starts
+    })
+  );
+
   const handleAddTask = (newTask) => {
     setTasks((prev) => [...prev, newTask]);
   };
@@ -348,7 +479,20 @@ export default function App() {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   };
 
-const today = new Date();
+  const handleToggleDone = (task) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === task.id
+          ? {
+              ...t,
+              status: t.status === "done" ? "not-started" : "done",
+            }
+          : t
+      )
+    );  
+  };
+
+  const today = new Date();
   const filteredTasks = {
     today: tasks.filter((t) => {
       const diff =
@@ -368,15 +512,16 @@ const today = new Date();
         (new Date(t.due).setHours(0, 0, 0, 0) -
           today.setHours(0, 0, 0, 0)) /
         (1000 * 60 * 60 * 24);
-      return diff > 7;
+      return diff > 7 && t.status !== "done";
     }),
+    completed: tasks.filter((t) => t.status === "done"),
   };
 
   return (
     <div className="app">
       {/* Navbar */}
       <div className="navbar">
-        {["status", "today", "week", "upcoming"].map((tab) => (
+        {["status", "today", "week", "upcoming", "completed"].map((tab) => (
           <button
             key={tab}
             className={`tab ${activeTab === tab ? "active" : ""}`}
@@ -388,7 +533,9 @@ const today = new Date();
               ? "Today"
               : tab === "week"
               ? "This Week"
-              : "Upcoming"}
+              : tab === "upcoming"
+              ? "Upcoming"
+              : "Completed"}
           </button>
         ))}
         <button className="new-task-btn" onClick={() => setIsModalOpen(true)}>
@@ -399,6 +546,7 @@ const today = new Date();
       {/* Status Screen */}
       {activeTab === "status" && (
         <DndContext
+          sensors={sensors}
           collisionDetection={closestCorners}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
@@ -412,6 +560,10 @@ const today = new Date();
                 title={col.title}
                 tasks={tasks.filter((t) => t.status === col.key)}
                 isOver={overColumn === col.key}
+                setEditTask={setEditTask}
+                setDeleteTask={setDeleteTask}
+                handleToggleDone={handleToggleDone}
+                activeTab={activeTab}
               />
             ))}
           </div>
@@ -431,29 +583,27 @@ const today = new Date();
           )}
         </DndContext>
       )}
-
-      {/* Today / Week / Upcoming */}
-      {["today", "week", "upcoming"].includes(activeTab) && (
-        <div className="filtered-tasks">
-          {filteredTasks[activeTab].length === 0 ? (
-            <p className="empty-text">No tasks here 🎉</p>
-          ) : (
-            filteredTasks[activeTab].map((task) => {
-              const dueStatus = getDueStatus(task.due);
-              return (
-                <div key={task.id} className="task-card">
-                  <p className="task-title">{task.title}</p>
-                  <div
-                    className={`task-due ${dueStatus.className}`}
-                  >
-                    {dueStatus.text}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      )}
+      
+      {["today", "week", "upcoming", "completed"].includes(activeTab) && filteredTasks[activeTab] && (
+  <div className="filtered-tasks">
+    {filteredTasks[activeTab].length === 0 ? (
+      <p className="empty-text">No tasks here 🎉</p>
+    ) : (
+      [...filteredTasks[activeTab]]
+        .sort((a, b) => (a.status === "done" ? 1 : b.status === "done" ? -1 : 0))
+        .map((task) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            onEdit={setEditTask}
+            onDelete={setDeleteTask}
+            onToggleDone={handleToggleDone}
+            activeTab={activeTab}
+          />
+        ))
+    )}
+  </div>
+)}
 
       <NewTaskModal
         isOpen={isModalOpen}
