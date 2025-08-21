@@ -47,6 +47,17 @@
   --shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
 
 body {
   margin: 0;
@@ -114,6 +125,8 @@ body {
   display: flex;
   gap: 20px;
   align-items: flex-start;
+  flex-wrap: wrap; 
+  justify-content: center;
 }
 
 .column {
@@ -126,6 +139,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  flex: 1 1 200px; 
+  max-width: 420px;
+  min-width: 250px;
 }
 
 .column h3{
@@ -434,43 +450,98 @@ body {
   text-shadow: 0 0 8px #f19880, 0 0 2px #f19880;
 }
 
-@media (max-width: 320px) {
-  .app {
-    padding: 8px;
-    max-width: 90vw;
-    min-width: 0;
-  }
+/* === Tablets === */
+@media (max-width: 900px) {
   .board {
-    flex-direction: column;
-    gap: 15px;
-    align-items: stretch;
+    gap: 16px;
+    justify-content: center;
   }
+
   .column {
-    min-width: 0; 
-    width: 95%;
-    margin-bottom: 12px;
-    padding: 8px;
-  }
-  .task-card {
-    width: 100%;
+    flex: 1 1 45%;
     max-width: 100%;
-    font-size: 1em;
+  }
+
+  .task-card {
+    font-size: 0.95em;
     padding: 10px;
   }
+
   .navbar {
     flex-wrap: wrap;
-    gap: 8px;
-    font-size: 0.95em;
+    justify-content: center;
+    gap: 10px;
   }
+
   .new-task-btn {
     margin-left: 0;
-    width: 95%;
     margin-top: 8px;
+    width: auto;
   }
+}
+
+/* === Mobiles === */
+@media (max-width: 600px) {
+  .board {
+    flex-direction: column;
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .column {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px;
+  }
+
+  .navbar {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .tab {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+    font-size: 1em;
+  }
+
+  .new-task-btn {
+    width: 100%;
+    margin: 6px 0 0;
+  }
+
+  .task-card {
+    font-size: 0.9em;
+    padding: 8px;
+  }
+
   .app-header .todo-heading {
-    font-size: 1.5em !important;
-    letter-spacing: 1px;
+    font-size: 1.7em !important;
     text-align: center;
   }
-  
 }
+
+/* === Extra Small Screens === */
+@media (max-width: 380px) {
+  .column {
+    padding: 6px;
+  }
+
+  .task-card {
+    padding: 6px;
+    font-size: 0.85em;
+  }
+
+  .tab {
+    font-size: 0.9em;
+    padding: 8px;
+  }
+
+  .new-task-btn {
+    font-size: 0.9em;
+    padding: 8px;
+  }
+}
+
