@@ -399,6 +399,16 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, task }) {
 
 // Main App Component
 export default function App() {
+  // Add viewport meta tag for mobile responsiveness
+  useEffect(() => {
+    let meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width, initial-scale=1.0';
+      document.head.appendChild(meta);
+    }
+  }, []);
   const [activeTab, setActiveTab] = useState("status");
   const [activeTask, setActiveTask] = useState(null);
   const [overColumn, setOverColumn] = useState(null);
