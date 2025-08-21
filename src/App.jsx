@@ -644,37 +644,41 @@ export default function App() {
       {/* This Week tab: group and sort by weekday */}
       {activeTab === "week" && filteredTasks["week"] && (
         <div className="week-list">
-          {(() => {
-            // Group tasks by weekday name
-            const tasksByDay = {};
-            filteredTasks["week"].forEach(task => {
-              const dateObj = new Date(task.due);
-              const dayName = dateObj.toLocaleDateString(undefined, { weekday: 'long' });
-              if (!tasksByDay[dayName]) tasksByDay[dayName] = [];
-              tasksByDay[dayName].push(task);
-            });
-            // Sort days by order in week
-            const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-            return weekDays
-              .filter(day => tasksByDay[day])
-              .map(day => (
-                <div key={day} style={{ marginBottom: '24px' }}>
-                  <div className="date-title">{day}</div>
-                  {tasksByDay[day]
-                    .sort((a, b) => new Date(a.due) - new Date(b.due))
-                    .map(task => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onEdit={setEditTask}
-                        onDelete={setDeleteTask}
-                        onToggleDone={handleToggleDone}
-                        activeTab={activeTab}
-                      />
-                    ))}
-                </div>
-              ));
-          })()}
+          {filteredTasks["week"].length === 0 ? (
+            <p className="empty-text">No tasks here 🎉</p>
+          ) : (
+            (() => {
+              // Group tasks by weekday name
+              const tasksByDay = {};
+              filteredTasks["week"].forEach(task => {
+                const dateObj = new Date(task.due);
+                const dayName = dateObj.toLocaleDateString(undefined, { weekday: 'long' });
+                if (!tasksByDay[dayName]) tasksByDay[dayName] = [];
+                tasksByDay[dayName].push(task);
+              });
+              // Sort days by order in week
+              const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+              return weekDays
+                .filter(day => tasksByDay[day])
+                .map(day => (
+                  <div key={day} style={{ marginBottom: '24px' }}>
+                    <div className="date-title">{day}</div>
+                    {tasksByDay[day]
+                      .sort((a, b) => new Date(a.due) - new Date(b.due))
+                      .map(task => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onEdit={setEditTask}
+                          onDelete={setDeleteTask}
+                          onToggleDone={handleToggleDone}
+                          activeTab={activeTab}
+                        />
+                      ))}
+                  </div>
+                ));
+            })()
+          )}
         </div>
       )}
 
@@ -682,7 +686,7 @@ export default function App() {
       { ["today", "pending", "completed"].includes(activeTab) && filteredTasks[activeTab] && (
         <div className="filtered-tasks">
           {filteredTasks[activeTab].length === 0 ? (
-            <p className="empty-text">No tasks here {activeTab!=="completed" ? '🎉' : ':('}</p>
+            <p className="empty-text">No tasks here {activeTab!=="completed" ? '🎉' : '☹️'}</p>
           ) : (
             [...filteredTasks[activeTab]]
               .sort((a, b) => (a.status === "done" ? 1 : b.status === "done" ? -1 : 0))
