@@ -1,12 +1,74 @@
+/* === THEME VARIABLES === */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nata+Sans:wght@700&display=swap');
+
+:root {
+  --bg-main: #111;
+  --bg-card: #2c2f33;
+  --bg-card-ip: #142e4c;
+  --bg-card-done: #173428;
+  --bg-column: #17191a;
+  --bg-column-ip: #101623;
+  --bg-column-done: #162118;
+  --text-main: #fff;
+  --text-secondary: #aaa;
+  --accent: #4cafef;
+  --btn-bg: #4cafef;
+  --btn-text: #fff;
+  --modal-bg: rgb(46, 44, 44);
+  --input-bg: #222;
+  --input-border: #ccc;
+  --delete: #dc2626;
+  --edit: #7fbef1;
+  --shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  --font-main: 'Inter', Arial, sans-serif;
+  --text-head: 'Montserrat', sans-serif;
+  --col-head: 'Nata Sans', sans-serif;
+}
+.light-mode {
+  --bg-main: #f7f7f7;
+  --bg-card: #fff;
+  --bg-card-ip: #bad8ea;
+  --bg-card-done: #bce4bc;
+  --bg-column: #e3e6e8;
+  --bg-column-ip: #a1c3e4;
+  --bg-column-done: #a6d9af;
+  --text-main: #222;
+  --text-secondary: #555;
+  --accent: #2563eb;
+  --btn-bg: #2563eb;
+  --btn-text: #fff;
+  --modal-bg: #fff;
+  --input-bg: #f9f9f9;
+  --input-border: #bbb;
+  --delete: #dc2626;
+  --edit: #2563eb;
+  --shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #111;
-  color: #fff;
+  font-family: var(--font-main);
+  background: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s, color 0.3s;
+  background-image: url("./assets/ooorganize.svg");
+  background-repeat: repeat;       /* Makes the SVG repeat */
+  background-size: auto;           /* Keep original size */
+  background-position: top left;   /* Start from top-left */
 }
 
 .app {
   padding: 20px;
+  width: 100%;
+  max-width: 1200px;
+  background: transparent;
 }
 
 /* Navbar */
@@ -19,25 +81,31 @@ body {
 .tab {
   background: transparent;
   border: none;
-  color: #aaa;
+  color: var(--text-secondary);
   font-size: 16px;
   cursor: pointer;
   padding: 8px 12px;
+  transition: color 0.3s;
 }
 
 .tab.active {
-  color: #fff;
-  border-bottom: 2px solid #4cafef;
+  color: var(--text-main);
+  border-bottom: 2px solid var(--accent);
+  text-shadow: 0 0 6px var(--accent), 0 0 2px var(--accent);
+}
+.light-mode .tab.active {
+  text-shadow: 0 0 8px #b3e0ff, 0 0 2px #b3e0ff;
 }
 
 .new-task-btn {
-  margin-left: auto;
-  background: #4cafef;
-  color: white;
+  margin-left: 300px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
   border: none;
   border-radius: 8px;
   padding: 8px 12px;
   cursor: pointer;
+  transition: background 0.3s, color 0.3s;
 }
 
 /* Board */
@@ -49,19 +117,26 @@ body {
 }
 
 .column {
-  background: #17191a;
+  background: var(--bg-column);
   border-radius: 12px;
   padding: 12px;
-  min-width: 220px;
+  min-width: 275px;
   transition: background 0.2s ease;
-  /* Remove flex: 1 so columns only as tall as their content */
   display: flex;
   flex-direction: column;
   align-items: stretch;
 }
 
+.column h3{
+  text-align: center;
+  font: var(--col-head);
+  font-weight: bold;
+  font-size: larger;
+}
+
 .column-over {
-  background: #4f5355; 
+  background: var(--accent);
+  color: #fff;
 }
 
 .column-title {
@@ -79,11 +154,17 @@ body {
   position: relative;
   padding: 12px;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease, background 0.3s;
   overflow: hidden;
-  background: #2c2f33; /* Darker background for task cards */
-  margin-bottom: 5%;
+  background: var(--bg-card);
+  margin-bottom: 12px;
+}
+.done .task-card{
+  background: var(--bg-card-done);
+}
+.in-progress .task-card{
+  background: var(--bg-card-ip);
 }
 
 .task-card:active {
@@ -96,11 +177,12 @@ body {
 .task-title {
   font-weight: bold;
   margin: 0;
+  color: var(--text-main);
 }
 
 .task-card.dragging {
   opacity: 0.9;
-  background: #6e7579; /* highlight overlay */
+  background: var(--accent);
   box-shadow: 0 6px 20px rgba(0,0,0,0.15);
   transform: scale(1.05);
 }
@@ -117,16 +199,18 @@ body {
 }
 
 .modal {
-  background: rgb(46, 44, 44);
+  background: var(--modal-bg);
   padding: 20px;
   border-radius: 12px;
   width: 350px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
   animation: fadeIn 0.2s ease;
+  color: var(--text-main);
 }
 
 .modal h2 {
   margin-bottom: 15px;
+  margin-top: auto;
 }
 
 .modal form {
@@ -138,8 +222,10 @@ body {
 .modal input,
 .modal select {
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--input-border);
   border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text-main);
 }
 
 .modal-actions {
@@ -150,16 +236,17 @@ body {
 }
 
 .cancel-btn {
-  background: #dd1515;
+  background: var(--delete);
   border: none;
   padding: 8px 12px;
   border-radius: 6px;
   cursor: pointer;
+  color: #fff;
 }
 
 .add-btn {
-  background: #2563eb;
-  color: white;
+  background: var(--btn-bg);
+  color: var(--btn-text);
   border: none;
   padding: 8px 12px;
   border-radius: 6px;
@@ -199,14 +286,14 @@ body {
 /* Common button styles */
 .task-card button {
   position: absolute;
-  background-color: transparent; /* Light background for buttons */
+  background-color: transparent;
   border: none;
   padding: 6px;
   border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow);
   cursor: pointer;
   opacity: 0;
-  transform: translateX(40px); /* Initially hidden outside the card */
+  transform: translateX(40px);
   transition: all 0.25s ease-in-out;
 }
 
@@ -221,12 +308,10 @@ body {
   border: none;
   padding: 6px;
   border-radius: 50%;
-  background-color: transparent; /* Invisible background initially */
-  color: #6b7280; /* Default gray icon */
+  background-color: transparent;
+  color: #6b7280;
   cursor: pointer;
   pointer-events: auto;
-
-  /* Start invisible & slide from right */
   opacity: 0;
   transform: translateX(10px);
   transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
@@ -242,13 +327,13 @@ body {
 .edit-btn {
   top: 6px;
   right: 6px;
-  color: #7fbef1;
+  color: var(--edit);
 }
 
 .delete-btn {
   bottom: 6px;
   right: 6px;
-  color: #dc2626;
+  color: var(--delete);
 }
 
 .delete-btn:hover {
@@ -257,11 +342,15 @@ body {
 }
 
 .edit-btn:hover {
-  background-color: rgba(107, 114, 128, 0.1); /* Light gray on hover */
-  color: #2563eb; /* Consistent blue on hover */
+  background-color: rgba(107, 114, 128, 0.1);
+  color: var(--accent);
 }
 
 /* Non-status cards layout */
+.task-card.non-status{
+  width: 95%;
+}
+
 .task-card.non-status .task-content {
   display: -webkit-box;
   align-items: center;
@@ -291,21 +380,47 @@ body {
   padding: 4px;
   border-radius: 50%;
   cursor: pointer;
-  color: #7fbef1;
+  color: var(--edit);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 
 .action-buttons .icon-btn:hover {
   background-color: rgba(107, 114, 128, 0.1);
-  color: #2563eb;
+  color: var(--accent);
 }
 
 .action-buttons .delete-btn {
-  color: #dc2626;
+  color: var(--delete);
 }
 
 .action-buttons .delete-btn:hover {
   background-color: rgba(220, 38, 38, 0.1);
   color: #b91c1c;
+}
+
+.date-title {
+  color: var(--btn-bg);
+  font-weight: bold;
+  font-size: 1.1em;
+  margin-bottom: 8px;
+}
+
+.column.in-progress {
+  background: var(--bg-column-ip);
+}
+.column.done {
+  background: var(--bg-column-done);
+}
+.done-indicator {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+.app-header .todo-heading {
+  text-shadow: 0 0 12px #ae3737, 0 0 2px #ae3737;
+}
+.light-mode .app-header .todo-heading {
+  text-shadow: 0 0 8px #f19880, 0 0 2px #f19880;
 }

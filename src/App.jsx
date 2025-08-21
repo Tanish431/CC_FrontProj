@@ -20,6 +20,7 @@ import "./App.css";
 
 import { FiEdit } from "react-icons/fi";
 import { AiOutlineDelete } from "react-icons/ai";
+import { FiSun, FiMoon } from "react-icons/fi";
 
 // Due Calculation Function
 function getDueStatus(due) {
@@ -171,15 +172,25 @@ function TaskCard({ task, onEdit, onDelete, onToggleDone, activeTab}) {
 }
 
 // Column
-function Column({ id, title, tasks, isOver, setEditTask, setDeleteTask, handleToggleDone, activeTab }) {
+function Column({ id, title, tasks, setEditTask, setDeleteTask, handleToggleDone, activeTab }) {
   const { setNodeRef } = useDroppable({ id });
 
   return (
     <div
       ref={setNodeRef}
-      className={`column ${isOver ? "column-over" : ""}`}
+      className={`column ${title.replace(/\s+/g, '-').toLowerCase()}`}
     >
-      <h3>{title}</h3>
+      <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+        {title}
+        {id === 'done' && activeTab === 'status' && (
+          <span className="done-indicator" title="Completed">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="9" cy="9" r="8" fill="#16a34a" />
+              <path d="M6 9.5L8 11.5L12 7.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        )}
+      </h3>
       <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
         <div className="non-status-view">
           {tasks.map((task) => (
@@ -200,7 +211,14 @@ function Column({ id, title, tasks, isOver, setEditTask, setDeleteTask, handleTo
 // Modal for adding tasks
 function NewTaskModal({ isOpen, onClose, onAddTask }) {
   const [title, setTitle] = useState("");
-  const [due, setDue] = useState("");
+  const getTodayDate = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+  const [due, setDue] = useState(getTodayDate());
   const [status, setStatus] = useState("not-started");
 
   const handleSubmit = (e) => {
@@ -215,13 +233,14 @@ function NewTaskModal({ isOpen, onClose, onAddTask }) {
     });
 
     setTitle("");
-    setDue("");
+    setDue(getTodayDate());
     setStatus("not-started");
     onClose();
   };
 
   useEffect(() => {
     if (!isOpen) return;
+    setDue(getTodayDate());
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose();
     };
@@ -386,16 +405,29 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [deleteTask, setDeleteTask] = useState(null);
+  const [darkMode, setDarkMode] = useState(true); 
 
   const [tasks, setTasks] = useState(() => {
     const savedTasks = localStorage.getItem("tasks");
-    return savedTasks ? JSON.parse(savedTasks) : [];
+    if (savedTasks) {
+      return JSON.parse(savedTasks);
+    } else {
+      return [{
+        id: "welcome-task",
+        title: "Welcome! Start by editing or adding your first task.",
+        due: new Date().toISOString().slice(0, 10),
+        status: "in-progress",
+      }];
+    }
   });
 
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
 
+  useEffect(() => {
+    document.body.classList.toggle('light-mode', !darkMode);
+  }, [darkMode]);
 
   const columns = [
     { key: "not-started", title: "Not Started" },
@@ -507,21 +539,39 @@ export default function App() {
         (1000 * 60 * 60 * 24);
       return diff >= 0 && diff <= 7;
     }),
-    upcoming: tasks.filter((t) => {
-      const diff =
-        (new Date(t.due).setHours(0, 0, 0, 0) -
-          today.setHours(0, 0, 0, 0)) /
-        (1000 * 60 * 60 * 24);
-      return diff > 7 && t.status !== "done";
+    pending: tasks.filter((t) => {
+      const dueDate = new Date(t.due).setHours(0, 0, 0, 0);
+      const todayDate = today.setHours(0, 0, 0, 0);
+      return t.status !== "done" && dueDate < todayDate;
     }),
     completed: tasks.filter((t) => t.status === "done"),
   };
 
+  const todayString = today.toLocaleDateString(undefined, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
   return (
     <div className="app">
+      {/* Header */}
+      <header className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 0', marginBottom: '12px' }}>
+        <div className="todo-heading" style={{ font: 'var(--text-head)', fontSize: '2.5em', letterSpacing: '2px', color: 'var(--text-main)', fontWeight: "bold"}}>TO-DO LIST</div>
+        <button
+          className="mode-toggle-btn"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.5em', color: 'var(--accent)' }}
+          onClick={() => setDarkMode((prev) => !prev)}
+          aria-label="Toggle light mode"
+        >
+          {darkMode ? <FiSun /> : <FiMoon />}
+        </button>
+      </header>
+
       {/* Navbar */}
       <div className="navbar">
-        {["status", "today", "week", "upcoming", "completed"].map((tab) => (
+        {["status", "today", "week", "pending", "completed"].map((tab) => (
           <button
             key={tab}
             className={`tab ${activeTab === tab ? "active" : ""}`}
@@ -533,8 +583,8 @@ export default function App() {
               ? "Today"
               : tab === "week"
               ? "This Week"
-              : tab === "upcoming"
-              ? "Upcoming"
+              : tab === "pending"
+              ? "Pending"
               : "Completed"}
           </button>
         ))}
@@ -542,6 +592,13 @@ export default function App() {
           + New Task
         </button>
       </div>
+
+      {/* Show current date in Today tab */}
+      {activeTab === "today" && (
+        <div className="date-title">
+          {todayString}
+        </div>
+      )}
 
       {/* Status Screen */}
       {activeTab === "status" && (
@@ -584,26 +641,64 @@ export default function App() {
         </DndContext>
       )}
       
-      {["today", "week", "upcoming", "completed"].includes(activeTab) && filteredTasks[activeTab] && (
-  <div className="filtered-tasks">
-    {filteredTasks[activeTab].length === 0 ? (
-      <p className="empty-text">No tasks here 🎉</p>
-    ) : (
-      [...filteredTasks[activeTab]]
-        .sort((a, b) => (a.status === "done" ? 1 : b.status === "done" ? -1 : 0))
-        .map((task) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            onEdit={setEditTask}
-            onDelete={setDeleteTask}
-            onToggleDone={handleToggleDone}
-            activeTab={activeTab}
-          />
-        ))
-    )}
-  </div>
-)}
+      {/* This Week tab: group and sort by weekday */}
+      {activeTab === "week" && filteredTasks["week"] && (
+        <div className="week-list">
+          {(() => {
+            // Group tasks by weekday name
+            const tasksByDay = {};
+            filteredTasks["week"].forEach(task => {
+              const dateObj = new Date(task.due);
+              const dayName = dateObj.toLocaleDateString(undefined, { weekday: 'long' });
+              if (!tasksByDay[dayName]) tasksByDay[dayName] = [];
+              tasksByDay[dayName].push(task);
+            });
+            // Sort days by order in week
+            const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            return weekDays
+              .filter(day => tasksByDay[day])
+              .map(day => (
+                <div key={day} style={{ marginBottom: '24px' }}>
+                  <div className="date-title">{day}</div>
+                  {tasksByDay[day]
+                    .sort((a, b) => new Date(a.due) - new Date(b.due))
+                    .map(task => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onEdit={setEditTask}
+                        onDelete={setDeleteTask}
+                        onToggleDone={handleToggleDone}
+                        activeTab={activeTab}
+                      />
+                    ))}
+                </div>
+              ));
+          })()}
+        </div>
+      )}
+
+      {/* Other filtered tabs */}
+      { ["today", "pending", "completed"].includes(activeTab) && filteredTasks[activeTab] && (
+        <div className="filtered-tasks">
+          {filteredTasks[activeTab].length === 0 ? (
+            <p className="empty-text">No tasks here {activeTab!=="completed" ? '🎉' : ':('}</p>
+          ) : (
+            [...filteredTasks[activeTab]]
+              .sort((a, b) => (a.status === "done" ? 1 : b.status === "done" ? -1 : 0))
+              .map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onEdit={setEditTask}
+                  onDelete={setDeleteTask}
+                  onToggleDone={handleToggleDone}
+                  activeTab={activeTab}
+                />
+              ))
+          )}
+        </div>
+      )}
 
       <NewTaskModal
         isOpen={isModalOpen}
