@@ -297,17 +297,19 @@ function NewTaskModal({ isOpen, onClose, onAddTask }) {
 function EditTaskModal({ isOpen, onClose, task, onUpdate }) {
   const [title, setTitle] = useState(task?.title || "");
   const [due, setDue] = useState(task?.due || "");
+  const [status, setStatus] = useState(task?.status || "not-started");
 
   useEffect(() => {
     setTitle(task?.title || "");
     setDue(task?.due || "");
+    setStatus(task?.status || "not-started");
   }, [task]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim() || !due) return;
 
-    onUpdate({ ...task, title, due });
+    onUpdate({ ...task, title, due, status });
     onClose();
   };
 
@@ -343,6 +345,13 @@ function EditTaskModal({ isOpen, onClose, task, onUpdate }) {
             onChange={(e) => setDue(e.target.value)}
             required
           />
+
+          <label>Status</label>
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="not-started">Not Started</option>
+            <option value="in-progress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
 
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={onClose}>
