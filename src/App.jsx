@@ -22,9 +22,9 @@ import { FiEdit } from "react-icons/fi";
 import { AiOutlineDelete } from "react-icons/ai";
 import { FiSun, FiMoon } from "react-icons/fi";
 
-// Due Calculation Function
+// Due Function
 function getDueStatus(due) {
-  const today = new Date();
+  const today = React.useMemo(() => new Date(), []);
   const dueDate = new Date(due);
   const diffTime = dueDate.setHours(0,0,0,0) - today.setHours(0,0,0,0);
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -65,7 +65,6 @@ function TaskCard({ task, onEdit, onDelete, onToggleDone, activeTab}) {
     e.preventDefault();
   };
 
-  // Remove strike-through for completed tab
   const isCompletedTab = activeTab === "completed";
   // Hide edit button for completed tasks
   const showEdit = task.status !== "done";
@@ -180,7 +179,7 @@ function Column({ id, title, tasks, setEditTask, setDeleteTask, handleToggleDone
       ref={setNodeRef}
       className={`column ${title.replace(/\s+/g, '-').toLowerCase()}`}
     >
-      <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+      <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>  
         {title}
         {id === 'done' && activeTab === 'status' && (
           <span className="done-indicator" title="Completed">
@@ -210,6 +209,7 @@ function Column({ id, title, tasks, setEditTask, setDeleteTask, handleToggleDone
 
 // Modal for adding tasks
 function NewTaskModal({ isOpen, onClose, onAddTask }) {
+  // Initialize state for new task
   const [title, setTitle] = useState("");
   const getTodayDate = () => {
     const today = new Date();
@@ -238,6 +238,7 @@ function NewTaskModal({ isOpen, onClose, onAddTask }) {
     onClose();
   };
 
+  // Close modal on Escape key
   useEffect(() => {
     if (!isOpen) return;
     setDue(getTodayDate());
@@ -248,6 +249,7 @@ function NewTaskModal({ isOpen, onClose, onAddTask }) {
     return () => window.removeEventListener("keydown", handleEsc);
   }, [isOpen, onClose]);
 
+  // If modal is not open, return null to avoid rendering
   if (!isOpen) return null;
 
   return createPortal(
@@ -294,7 +296,9 @@ function NewTaskModal({ isOpen, onClose, onAddTask }) {
   );
 }
 
+// Modal for editing tasks
 function EditTaskModal({ isOpen, onClose, task, onUpdate }) {
+  // Initialize state for editing task
   const [title, setTitle] = useState(task?.title || "");
   const [due, setDue] = useState(task?.due || "");
   const [status, setStatus] = useState(task?.status || "not-started");
@@ -368,6 +372,7 @@ function EditTaskModal({ isOpen, onClose, task, onUpdate }) {
   );
 }
 
+// Modal for task deletion
 function DeleteConfirmationModal({ isOpen, onClose, onConfirm, task }) {
   useEffect(() => {
     if (!isOpen) return;
@@ -418,6 +423,7 @@ export default function App() {
       document.head.appendChild(meta);
     }
   }, []);
+  // State management
   const [activeTab, setActiveTab] = useState("status");
   const [activeTask, setActiveTask] = useState(null);
   const [overColumn, setOverColumn] = useState(null);
@@ -433,13 +439,14 @@ export default function App() {
     } else {
       return [{
         id: "welcome-task",
-        title: "Welcome! Start by editing or adding your first task.",
+        title: "Welcome!",
         due: new Date().toISOString().slice(0, 10),
         status: "in-progress",
       }];
     }
   });
 
+  // Save tasks to localStorage
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
@@ -454,6 +461,7 @@ export default function App() {
     { key: "done", title: "Done" },
   ];
 
+  // Drag and drop handlers
   const handleDragStart = ({ active }) => {
     const task = tasks.find((t) => t.id === active.id);
     setActiveTask(task || null);
@@ -487,6 +495,7 @@ export default function App() {
       return;
     }
 
+    // Handle reordering within the same status
     const activeTask = tasks.find((t) => t.id === activeId);
     const overTask = tasks.find((t) => t.id === overId);
     if (!activeTask || !overTask) return;
@@ -517,6 +526,7 @@ export default function App() {
     })
   );
 
+  // Handle adding, updating, deleting tasks
   const handleAddTask = (newTask) => {
     setTasks((prev) => [...prev, newTask]);
   };
@@ -525,7 +535,6 @@ export default function App() {
       prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
     );
   };
-
   const handleDeleteTask = (id) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   };
@@ -543,29 +552,32 @@ export default function App() {
     );  
   };
 
+  // Filter tasks for Today, This Week, Pending, and Completed tabs
   const today = new Date();
+  const zeroedToday = new Date(today);
+  zeroedToday.setHours(0, 0, 0, 0);
+
   const filteredTasks = {
     today: tasks.filter((t) => {
-      const diff =
-        new Date(t.due).setHours(0, 0, 0, 0) -
-        today.setHours(0, 0, 0, 0);
-      return diff === 0;
+      const taskDate = new Date(t.due);
+      taskDate.setHours(0, 0, 0, 0);
+      return taskDate.getTime() === zeroedToday.getTime();
     }),
     week: tasks.filter((t) => {
-      const diff =
-        (new Date(t.due).setHours(0, 0, 0, 0) -
-          today.setHours(0, 0, 0, 0)) /
-        (1000 * 60 * 60 * 24);
-      return diff >= 0 && diff <= 7;
+      const taskDate = new Date(t.due);
+      taskDate.setHours(0, 0, 0, 0);
+      const diff = (taskDate.getTime() - zeroedToday.getTime()) / (1000 * 60 * 60 * 24);
+      return t.status !== "done" && diff >= 0 && diff < 7;
     }),
     pending: tasks.filter((t) => {
-      const dueDate = new Date(t.due).setHours(0, 0, 0, 0);
-      const todayDate = today.setHours(0, 0, 0, 0);
-      return t.status !== "done" && dueDate < todayDate;
+      const dueDate = new Date(t.due);
+      dueDate.setHours(0, 0, 0, 0);
+      return t.status !== "done" && dueDate.getTime() < zeroedToday.getTime();
     }),
     completed: tasks.filter((t) => t.status === "done"),
   };
 
+  // Today's date for display
   const todayString = today.toLocaleDateString(undefined, {
     weekday: 'long',
     year: 'numeric',
@@ -575,7 +587,6 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Header */}
       <header className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 0', marginBottom: '12px' }}>
         <div className="todo-heading" style={{ font: 'var(--text-head)', fontSize: '2.5em', letterSpacing: '2px', color: 'var(--text-main)', fontWeight: "bold"}}>TO-DO LIST</div>
         <button
@@ -588,7 +599,6 @@ export default function App() {
         </button>
       </header>
 
-      {/* Navbar */}
       <div className="navbar">
         {["status", "today", "week", "pending", "completed"].map((tab) => (
           <button
@@ -612,14 +622,12 @@ export default function App() {
         </button>
       </div>
 
-      {/* Show current date in Today tab */}
       {activeTab === "today" && (
         <div className="date-title">
           {todayString}
         </div>
       )}
 
-      {/* Status Screen */}
       {activeTab === "status" && (
         <DndContext
           sensors={sensors}
@@ -660,7 +668,6 @@ export default function App() {
         </DndContext>
       )}
       
-      {/* This Week tab: group and sort by weekday */}
       {activeTab === "week" && filteredTasks["week"] && (
         <div className="week-list">
           {filteredTasks["week"].length === 0 ? (
@@ -701,7 +708,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Other filtered tabs */}
       { ["today", "pending", "completed"].includes(activeTab) && filteredTasks[activeTab] && (
         <div className="filtered-tasks">
           {filteredTasks[activeTab].length === 0 ? (
