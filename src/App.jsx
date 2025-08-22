@@ -23,8 +23,7 @@ import { AiOutlineDelete } from "react-icons/ai";
 import { FiSun, FiMoon } from "react-icons/fi";
 
 // Due Function
-function getDueStatus(due) {
-  const today = React.useMemo(() => new Date(), []);
+function getDueStatus(due, today) {
   const dueDate = new Date(due);
   const diffTime = dueDate.setHours(0,0,0,0) - today.setHours(0,0,0,0);
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -55,10 +54,11 @@ function TaskCard({ task, onEdit, onDelete, onToggleDone, activeTab}) {
     opacity: isDragging ? 0.1 : 1,
   };
 
+  const today = new Date();
   const dueStatus =
     task.status === "done"
       ? { text: "🎉 Well Done!!", className: "due-green" }
-      : getDueStatus(task.due);
+      : getDueStatus(task.due, today);
   
   const stopDrag = (e) => {
     e.stopPropagation();
@@ -658,7 +658,7 @@ export default function App() {
                 <div className="task-card dragging">
                   <p className="task-title">{activeTask.title}</p>
                   <p className="task-due">
-                    {getDueStatus(activeTask.due).text}
+                    {getDueStatus(activeTask.due, today).text}
                   </p>
                 </div>
               ) : null}
