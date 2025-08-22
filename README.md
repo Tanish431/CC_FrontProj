@@ -1,4 +1,4 @@
-# CC_FrontProj
+# To-Do List App
 
 A responsive to-do list web application built with React and Vite. This project features drag-and-drop task management, status tracking, and a user interface with dark/light mode support.
 
