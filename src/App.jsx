@@ -18,6 +18,11 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { createPortal } from "react-dom";
 import "./App.css";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import TextField from "@mui/material/TextField";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 import { FiEdit } from "react-icons/fi";
 import { AiOutlineDelete } from "react-icons/ai";
@@ -209,16 +214,10 @@ function Column({ id, title, tasks, setEditTask, setDeleteTask, handleToggleDone
 }
 
 // Modal for adding tasks
-function NewTaskModal({ isOpen, onClose, onAddTask }) {
-  // Initialize state for new task
+
+function NewTaskModal({ isOpen, onClose, onAddTask, darkMode }) {
   const [title, setTitle] = useState("");
-  const getTodayDate = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  };
+  const getTodayDate = () => new Date().toISOString().slice(0, 10);
   const [due, setDue] = useState(getTodayDate());
   const [status, setStatus] = useState("not-started");
 
@@ -239,19 +238,15 @@ function NewTaskModal({ isOpen, onClose, onAddTask }) {
     onClose();
   };
 
-  // Close modal on Escape key
-  useEffect(() => {
-    if (!isOpen) return;
-    setDue(getTodayDate());
-    const handleEsc = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [isOpen, onClose]);
-
-  // If modal is not open, return null to avoid rendering
   if (!isOpen) return null;
+
+  // Dynamic MUI theme for light/dark mode
+  const pickerTheme = createTheme({
+    palette: {
+      mode: darkMode ? "dark" : "light",
+      primary: { main: darkMode ? "#4cafef" : "#2563eb" },
+    },
+  });
 
   return createPortal(
     <div className="modal-overlay">
@@ -268,12 +263,22 @@ function NewTaskModal({ isOpen, onClose, onAddTask }) {
           />
 
           <label>Due Date</label>
-          <input
-            type="date"
-            value={due}
-            onChange={(e) => setDue(e.target.value)}
-            required
-          />
+          <ThemeProvider theme={pickerTheme}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DatePicker
+                label="Select due date"
+                value={due ? new Date(due) : null}
+                onChange={(newValue) => {
+                  if (newValue) {
+                    setDue(new Date(newValue).toISOString().slice(0, 10));
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} sx={{ input: { color: darkMode ? "#fff" : "#000" } }} />
+                )}
+              />
+            </LocalizationProvider>
+          </ThemeProvider>
 
           <label>Status</label>
           <select value={status} onChange={(e) => setStatus(e.target.value)}>
@@ -735,6 +740,7 @@ export default function App() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAddTask={handleAddTask}
+        darkMode={darkMode}
       />
       <EditTaskModal
         isOpen={!!editTask}
