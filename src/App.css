@@ -180,6 +180,7 @@ body {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  touch-action: none;
 }
 .done .task-card{
   background: var(--bg-card-done);

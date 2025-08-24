@@ -7,6 +7,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  TouchSensor,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -522,8 +523,9 @@ export default function App() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 6 }, // must move 6px before a drag starts
-    })
+      activationConstraint: { distance: 4 }, // must move 4px before a drag starts
+    }),
+    useSensor(TouchSensor)
   );
 
   // Handle adding, updating, deleting tasks
