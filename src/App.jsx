@@ -191,7 +191,7 @@ function Column({ id, title, tasks, setEditTask, setDeleteTask, handleToggleDone
       ref={setNodeRef}
       className={`column ${title.replace(/\s+/g, '-').toLowerCase()}`}
     >
-      <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>  
+      <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
         {title}
         {id === 'done' && activeTab === 'status' && (
           <span className="done-indicator" title="Completed">
@@ -202,23 +202,38 @@ function Column({ id, title, tasks, setEditTask, setDeleteTask, handleToggleDone
           </span>
         )}
       </h3>
+
       <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-        <div className="non-status-view">
-          {tasks.map((task) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            onEdit={(task) => setEditTask(task)}
-            onDelete={(task) => setDeleteTask(task)}
-            onToggleDone={handleToggleDone}
-            activeTab={activeTab}
-          />))}
+        <div className="non-status-view" style={{ minHeight: "50px" }}>
+          {tasks.length === 0 ? (
+            <p
+              style={{
+                textAlign: "center",
+                color: "var(--text-secondary)",
+                fontSize: "0.95em",
+                padding: "10px",
+                opacity: 0.7,
+              }}
+            >
+              No tasks here !!
+            </p>
+          ) : (
+            tasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onEdit={(task) => setEditTask(task)}
+                onDelete={(task) => setDeleteTask(task)}
+                onToggleDone={handleToggleDone}
+                activeTab={activeTab}
+              />
+            ))
+          )}
         </div>
       </SortableContext>
     </div>
   );
 }
-
 // Modal for adding tasks
 function NewTaskModal({ isOpen, onClose, onAddTask, darkMode }) {
   const [title, setTitle] = useState("");
