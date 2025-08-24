@@ -18,11 +18,17 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { createPortal } from "react-dom";
 import "./App.css";
+
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import TextField from "@mui/material/TextField";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
+
 
 import { FiEdit } from "react-icons/fi";
 import { AiOutlineDelete } from "react-icons/ai";
@@ -214,7 +220,6 @@ function Column({ id, title, tasks, setEditTask, setDeleteTask, handleToggleDone
 }
 
 // Modal for adding tasks
-
 function NewTaskModal({ isOpen, onClose, onAddTask, darkMode }) {
   const [title, setTitle] = useState("");
   const getTodayDate = () => new Date().toISOString().slice(0, 10);
@@ -254,13 +259,147 @@ function NewTaskModal({ isOpen, onClose, onAddTask, darkMode }) {
         <h2>Add New Task</h2>
         <form onSubmit={handleSubmit}>
           <label>Task Title</label>
-          <input
-            type="text"
-            placeholder="Enter task..."
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
+          <ThemeProvider theme={pickerTheme}>
+            <TextField
+              placeholder="Enter task..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              fullWidth
+              variant="outlined"
+              sx={{
+                input: { color: darkMode ? "#fff" : "#000" },
+                label: { color: darkMode ? "#aaa" : "#555" },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: darkMode ? "#555" : "#ccc",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: darkMode ? "#4cafef" : "#2563eb",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: darkMode ? "#4cafef" : "#2563eb",
+                  },
+                },
+              }}
+            />
+          </ThemeProvider>
+
+          <label>Due Date</label>
+          <ThemeProvider theme={pickerTheme}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DatePicker
+                label="Select due date"
+                value={due ? new Date(due) : null}
+                onChange={(newValue) => {
+                  if (newValue) {
+                    setDue(new Date(newValue).toISOString().slice(0, 10));
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} sx={{ input: { color: darkMode ? "#fff" : "#000" } }} />
+                )}
+              />
+            </LocalizationProvider>
+          </ThemeProvider>
+          
+          <ThemeProvider theme={pickerTheme}>
+              <FormControl fullWidth>
+            <label>Status</label>
+            <Select
+              labelId="status-label"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              sx={{
+                color: darkMode ? "#fff" : "#000",
+                backgroundColor: darkMode ? "#222" : "#f9f9f9",
+                borderRadius: "6px",
+                "& .MuiSvgIcon-root": {
+                  color: darkMode ? "#fff" : "#000",
+                },
+              }}
+            >
+              <MenuItem value="not-started">Not Started</MenuItem>
+              <MenuItem value="in-progress">In Progress</MenuItem>
+              <MenuItem value="done">Done</MenuItem>
+            </Select>
+            </FormControl>
+          </ThemeProvider>
+
+          <div className="modal-actions">
+            <button type="button" className="cancel-btn" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="add-btn">
+              Add Task
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+// Modal for editing tasks
+function EditTaskModal({ isOpen, onClose, task, onUpdate, darkMode }) {
+  const [title, setTitle] = useState(task?.title || "");
+  const [due, setDue] = useState(task?.due || "");
+  const [status, setStatus] = useState(task?.status || "not-started");
+
+  useEffect(() => {
+    setTitle(task?.title || "");
+    setDue(task?.due || "");
+    setStatus(task?.status || "not-started");
+  }, [task]);
+
+  if (!isOpen) return null;
+
+  const pickerTheme = createTheme({
+    palette: {
+      mode: darkMode ? "dark" : "light",
+      primary: { main: darkMode ? "#4cafef" : "#2563eb" },
+    },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!title.trim() || !due) return;
+    onUpdate({ ...task, title, due, status });
+    onClose();
+  };
+
+  return createPortal(
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>Edit Task</h2>
+        <form onSubmit={handleSubmit}>
+          <label>Task Title</label>
+          <ThemeProvider theme={pickerTheme}>
+            <TextField
+              placeholder="Enter task..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              fullWidth
+              variant="outlined"
+              sx={{
+                input: { color: darkMode ? "#fff" : "#000" },
+                label: { color: darkMode ? "#aaa" : "#555" },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: darkMode ? "#555" : "#ccc",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: darkMode ? "#4cafef" : "#2563eb",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: darkMode ? "#4cafef" : "#2563eb",
+                  },
+                },
+              }}
+            />
+          </ThemeProvider>
 
           <label>Due Date</label>
           <ThemeProvider theme={pickerTheme}>
@@ -280,88 +419,28 @@ function NewTaskModal({ isOpen, onClose, onAddTask, darkMode }) {
             </LocalizationProvider>
           </ThemeProvider>
 
+          <ThemeProvider theme={pickerTheme}>
+            <FormControl fullWidth variant="outlined" sx={{ mt: 1 }}>
           <label>Status</label>
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="not-started">Not Started</option>
-            <option value="in-progress">In Progress</option>
-            <option value="done">Done</option>
-          </select>
-
-          <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="add-btn">
-              Add Task
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>,
-    document.body
-  );
-}
-
-// Modal for editing tasks
-function EditTaskModal({ isOpen, onClose, task, onUpdate }) {
-  // Initialize state for editing task
-  const [title, setTitle] = useState(task?.title || "");
-  const [due, setDue] = useState(task?.due || "");
-  const [status, setStatus] = useState(task?.status || "not-started");
-
-  useEffect(() => {
-    setTitle(task?.title || "");
-    setDue(task?.due || "");
-    setStatus(task?.status || "not-started");
-  }, [task]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!title.trim() || !due) return;
-
-    onUpdate({ ...task, title, due, status });
-    onClose();
-  };
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleEsc = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [isOpen, onClose]);
-  
-  if (!isOpen) return null;
-
-  return createPortal(
-    <div className="modal-overlay">
-      <div className="modal">
-        <h2>Edit Task</h2>
-        <form onSubmit={handleSubmit}>
-          <label>Task Title</label>
-          <input
-            type="text"
-            placeholder="Enter task..."
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-
-          <label>Due Date</label>
-          <input
-            type="date"
-            value={due}
-            onChange={(e) => setDue(e.target.value)}
-            required
-          />
-
-          <label>Status</label>
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="not-started">Not Started</option>
-            <option value="in-progress">In Progress</option>
-            <option value="done">Done</option>
-          </select>
+              <Select
+                labelId="edit-status-label"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                sx={{
+                  color: darkMode ? "#fff" : "#000",
+                  backgroundColor: darkMode ? "#222" : "#f9f9f9",
+                  borderRadius: "6px",
+                  "& .MuiSvgIcon-root": {
+                    color: darkMode ? "#fff" : "#000",
+                  },
+                }}
+              >
+                <MenuItem value="not-started">Not Started</MenuItem>
+                <MenuItem value="in-progress">In Progress</MenuItem>
+                <MenuItem value="done">Done</MenuItem>
+              </Select>
+            </FormControl>
+          </ThemeProvider>
 
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={onClose}>
@@ -377,7 +456,6 @@ function EditTaskModal({ isOpen, onClose, task, onUpdate }) {
     document.body
   );
 }
-
 // Modal for task deletion
 function DeleteConfirmationModal({ isOpen, onClose, onConfirm, task }) {
   useEffect(() => {
@@ -747,6 +825,7 @@ export default function App() {
         onClose={() => setEditTask(null)}
         task={editTask}
         onUpdate={handleUpdateTask}
+        darkMode={darkMode}
       />
 
       <DeleteConfirmationModal
