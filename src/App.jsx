@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   DndContext,
   closestCorners,
@@ -18,6 +18,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { createPortal } from "react-dom";
 import "./App.css";
+import axios from "axios";
 
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -29,10 +30,8 @@ import MenuItem from "@mui/material/MenuItem";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
 
-
-import { FiEdit } from "react-icons/fi";
+import { FiEdit, FiSun, FiMoon } from "react-icons/fi";
 import { AiOutlineDelete } from "react-icons/ai";
-import { FiSun, FiMoon } from "react-icons/fi";
 
 // Due Function
 function getDueStatus(due, today) {
@@ -51,14 +50,7 @@ function getDueStatus(due, today) {
 
 // Task Card
 function TaskCard({ task, onEdit, onDelete, onToggleDone, activeTab}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: task.id });
+  const {attributes, listeners, setNodeRef, transform, transition, isDragging,} = useSortable({ id: task.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -509,6 +501,135 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, task }) {
     document.body
   );
 }
+function SignInModal({ isOpen, onClose, onSignIn }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    await onSignIn(email, password, setError, setLoading);
+  };
+
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>Sign In</h2>
+
+        {error && <p className="error-text">{error}</p>}
+
+        <form onSubmit={handleSubmit}>
+          <label>Email</label>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="custom-input"
+          />
+
+          <label>Password</label>
+          <input
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="custom-input"
+          />
+
+          <div className="modal-actions">
+            <button type="button" className="cancel-btn" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="add-btn" disabled={loading}>
+              {loading ? "Signing In..." : "Sign In"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+
+// SignUpModal
+function SignUpModal({ isOpen, onClose, onSignUp }) {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    await onSignUp(username, email, password, setError, setLoading);
+  };
+
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>Sign Up</h2>
+
+        {error && <p className="error-text">{error}</p>}
+
+        <form onSubmit={handleSubmit}>
+          <label>Username</label>
+          <input
+            type="text"
+            placeholder="Enter your username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            className="custom-input"
+          />
+
+          <label>Email</label>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="custom-input"
+          />
+
+          <label>Password</label>
+          <input
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="custom-input"
+          />
+
+          <div className="modal-actions">
+            <button type="button" className="cancel-btn" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="add-btn" disabled={loading}>
+              {loading ? "Signing Up..." : "Sign Up"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 
 // Main App Component
 export default function App() {
@@ -522,7 +643,6 @@ export default function App() {
       document.head.appendChild(meta);
     }
   }, []);
-  // State management
   const [activeTab, setActiveTab] = useState("status");
   const [activeTask, setActiveTask] = useState(null);
   const [overColumn, setOverColumn] = useState(null);
@@ -530,35 +650,74 @@ export default function App() {
   const [editTask, setEditTask] = useState(null);
   const [deleteTask, setDeleteTask] = useState(null);
   const [darkMode, setDarkMode] = useState(true); 
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
 
   const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem("tasks");
-    if (savedTasks) {
-      return JSON.parse(savedTasks);
-    } else {
-      return [{
+  const savedTasks = localStorage.getItem("tasks");
+  return savedTasks
+    ? JSON.parse(savedTasks)
+    : [{
         id: "welcome-task",
         title: "Welcome!",
         due: new Date().toISOString().slice(0, 10),
         status: "in-progress",
       }];
-    }
+});
+  const api = axios.create({
+    baseURL: "http://localhost:5000/api",
   });
+  api.interceptors.request.use(
+    (config) => {
+      const storedToken = localStorage.getItem("token");
+      if (storedToken) {
+        config.headers["Authorization"] = `Bearer ${storedToken}`;
+      }
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+  const fetchTasks = async (authToken) => {
+  try {
+    const response = await api.get("/tasks", {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+    // Keep tasks as an array
+    setTasks(response.data);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      handleSignOut();
+    }
+  }
+};
 
   // Save tasks to localStorage
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
-
+  
   useEffect(() => {
     document.body.classList.toggle('light-mode', !darkMode);
   }, [darkMode]);
-
+  
   const columns = [
     { key: "not-started", title: "Not Started" },
     { key: "in-progress", title: "In Progress" },
     { key: "done", title: "Done" },
   ];
+  const findColumn = (id) => {
+    if (tasks.todo.find((task) => task.id === id)) return "not-started";
+    if (tasks["in-progress"].find((task) => task.id === id)) return "in-progress";
+    if (tasks.done.find((task) => task.id === id)) return "done";
+    return null;
+  };
 
   // Drag and drop handlers
   const handleDragStart = ({ active }) => {
@@ -626,32 +785,87 @@ export default function App() {
     useSensor(TouchSensor)
   );
 
-  // Handle adding, updating, deleting tasks
-  const handleAddTask = (newTask) => {
-    setTasks((prev) => [...prev, newTask]);
+  const handleAddTask = async (newTask) => {
+    if (!token) return alert("Please sign in to add tasks.");
+    try {
+      const response = await api.post("/tasks", newTask);
+      const addedTask = response.data;
+      setTasks((prev) => [...prev, addedTask]);
+    } catch (error) {
+      console.error("Error adding task:", error);
+    }
   };
-  const handleUpdateTask = (updatedTask) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
-    );
+
+  const handleUpdateTask = async (taskId, updatedData) => {
+    if (!token) return;
+    try {
+      const response = await api.put(`/tasks/${taskId}`, updatedData);
+      const updatedTask = response.data;
+      setTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? updatedTask : t))
+      );
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
   };
-  const handleDeleteTask = (id) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+
+  const handleDeleteTask = async (taskId) => {
+    if (!token) return;
+    try {
+      await api.delete(`/tasks/${taskId}`);
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
   };
 
   const handleToggleDone = (task) => {
     setTasks((prev) =>
-      prev.map((t) =>
-        t.id === task.id
-          ? {
-              ...t,
-              status: t.status === "done" ? "not-started" : "done",
-            }
-          : t
-      )
-    );  
+    prev.map((t) =>
+    t.id === task.id ? { ...t, status: t.status === "done" ? "not-started" : "done" } : t
+    ));
   };
 
+  const handleSignup = async (username, email, password, setError, setLoading) => {
+    try {
+      const response = await api.post("/auth/signup", { username, email, password });
+      setIsSignUpModalOpen(false);
+      alert("Sign up successful! Please sign in.");
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Sign up failed. Please try again.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignin = async (email, password, setError, setLoading) => {
+    try {
+      const response = await api.post("/auth/signin", { email, password });
+      const { token, user } = response.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      setToken(token);
+      setUser(user);
+      setIsSignInModalOpen(false);
+      fetchTasks(token);
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Sign in failed. Invalid credentials.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setToken(null);
+    setUser(null);
+    setTasks([]);
+  };
   // Filter tasks for Today, This Week, Pending, and Completed tabs
   const today = new Date();
   const zeroedToday = new Date(today);
@@ -717,6 +931,33 @@ export default function App() {
               : "Completed"}
           </button>
         ))}
+        <div className="user-actions">
+              {user ? (
+                <>
+                  <span className="welcome-text">
+                    Welcome, {user.username}!
+                  </span>
+                  <button onClick={handleSignOut} className="sign-out-btn">
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setIsSignInModalOpen(true)}
+                    className="auth-btn"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => setIsSignUpModalOpen(true)}
+                    className="auth-btn"
+                  >
+                    Sign Up
+                  </button>
+                </>
+              )}
+            </div>
         <button className="new-task-btn" onClick={() => setIsModalOpen(true)}>
           + New Task
         </button>
@@ -848,6 +1089,18 @@ export default function App() {
         onClose={() => setDeleteTask(null)}
         onConfirm={handleDeleteTask}
         task={deleteTask}
+      />
+      <SignInModal
+          isOpen={isSignInModalOpen}
+          onClose={() => setIsSignInModalOpen(false)}
+          onSignIn={handleSignin}
+          darkMode={darkMode}
+        />
+      <SignUpModal
+        isOpen={isSignUpModalOpen}
+        onClose={() => setIsSignUpModalOpen(false)}
+        onSignUp={handleSignup}
+        darkMode={darkMode}
       />
     </div>
   );
