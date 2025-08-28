@@ -935,7 +935,7 @@ export default function App() {
               {user ? (
                 <>
                   <span className="welcome-text">
-                    Welcome, {user.username}!
+                    Welcome, {user.username}!    
                   </span>
                   <button onClick={handleSignOut} className="sign-out-btn">
                     Sign Out
