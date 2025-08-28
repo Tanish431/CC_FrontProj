@@ -425,6 +425,10 @@ body {
   color: #b91c1c;
 }
 
+.welcome-text {
+  margin-right: 20px;
+}
+
 .date-title {
   color: var(--btn-bg);
   font-weight: bold;
