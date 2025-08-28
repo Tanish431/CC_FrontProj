@@ -303,6 +303,7 @@ function NewTaskModal({ isOpen, onClose, onAddTask, darkMode }) {
                     setDue(new Date(newValue).toISOString().slice(0, 10));
                   }
                 }}
+                format="dd/MM/yyyy"
                 renderInput={(params) => (
                   <TextField {...params} sx={{ input: { color: darkMode ? "#fff" : "#000" } }} />
                 )}
