@@ -683,29 +683,22 @@ export default function App() {
       return Promise.reject(error);
     }
   );
-  const fetchTasks = async () => {
+  const fetchTasks = async (authToken) => {
   try {
-    if (!token) {
-      // Guest mode → load from localStorage
-      const storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
-      setTasks(storedTasks);
-      return;
-    }
-
-    // Logged-in → fetch from backend
     const response = await api.get("/tasks", {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
     });
-
+    // Keep tasks as an array
     setTasks(response.data);
-
-    // Cache backend tasks separately
-    localStorage.setItem("user_tasks", JSON.stringify(response.data));
   } catch (error) {
     console.error("Error fetching tasks:", error);
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      handleSignOut();
+    }
   }
 };
-
 
   // Save tasks to localStorage
   useEffect(() => {
@@ -721,6 +714,12 @@ export default function App() {
     { key: "in-progress", title: "In Progress" },
     { key: "done", title: "Done" },
   ];
+  const findColumn = (id) => {
+    if (tasks.todo.find((task) => task.id === id)) return "not-started";
+    if (tasks["in-progress"].find((task) => task.id === id)) return "in-progress";
+    if (tasks.done.find((task) => task.id === id)) return "done";
+    return null;
+  };
 
   // Drag and drop handlers
   const handleDragStart = ({ active }) => {
@@ -788,101 +787,39 @@ export default function App() {
     useSensor(TouchSensor)
   );
 
-const handleAddTask = async (newTask) => {
-  try {
-    if (!token) {
-      // Guest mode → save locally
-      const storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
-      const updatedTasks = [
-        ...storedTasks,
-        { ...newTask, id: Date.now().toString() },
-      ];
-
-      localStorage.setItem("guest_tasks", JSON.stringify(updatedTasks));
-      setTasks(updatedTasks);
-      return;
+  const handleAddTask = async (newTask) => {
+    if (!token) return alert("Please sign in to add tasks.");
+    try {
+      const response = await api.post("/tasks", newTask);
+      const addedTask = response.data;
+      setTasks((prev) => [...prev, addedTask]);
+    } catch (error) {
+      console.error("Error adding task:", error);
     }
-
-    // Logged-in → send to backend
-    const response = await api.post("/tasks", newTask, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const updatedTasks = [...tasks, response.data];
-    setTasks(updatedTasks);
-
-    localStorage.setItem("user_tasks", JSON.stringify(updatedTasks));
-  } catch (error) {
-    console.error("Error adding task:", error);
-  }
-};
-
+  };
 
   const handleUpdateTask = async (taskId, updatedData) => {
-  try {
-    if (!token) {
-      // Guest user → update localStorage tasks
-      let storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
-      storedTasks = storedTasks.map((t) =>
-        t.id === taskId ? { ...t, ...updatedData } : t
-      );
-
-      localStorage.setItem("guest_tasks", JSON.stringify(storedTasks));
-      setTasks(storedTasks);
-      return;
-    }
-
-    // Logged-in user → update on backend
-    const response = await api.put(`/tasks/${taskId}`, updatedData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const updatedTask = response.data;
-    setTasks((prev) =>
+    if (!token) return;
+    try {
+      const response = await api.put(`/tasks/${taskId}`, updatedData);
+      const updatedTask = response.data;
+      setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? updatedTask : t))
-    );
-
-    // Cache updated backend tasks too
-    localStorage.setItem(
-      "user_tasks",
-      JSON.stringify(
-        [...tasks].map((t) =>
-          t.id === taskId ? updatedTask : t
-        )
-      )
-    );
-  } catch (error) {
-    console.error("Error updating task:", error);
-  }
-};
-
+      );
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  };
 
   const handleDeleteTask = async (taskId) => {
-  try {
-    if (!token) {
-      // Guest mode → remove from localStorage
-      const storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
-      const updatedTasks = storedTasks.filter((t) => t.id !== taskId);
-
-      localStorage.setItem("guest_tasks", JSON.stringify(updatedTasks));
-      setTasks(updatedTasks);
-      return;
+    if (!token) return;
+    try {
+      await api.delete(`/tasks/${taskId}`);
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    } catch (error) {
+      console.error("Error deleting task:", error);
     }
-
-    // Logged-in → delete from backend
-    await api.delete(`/tasks/${taskId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const updatedTasks = tasks.filter((t) => t.id !== taskId);
-    setTasks(updatedTasks);
-
-    localStorage.setItem("user_tasks", JSON.stringify(updatedTasks));
-  } catch (error) {
-    console.error("Error deleting task:", error);
-  }
-};
-
+  };
 
   const handleToggleDone = (task) => {
     setTasks((prev) =>
