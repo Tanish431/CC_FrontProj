@@ -373,7 +373,7 @@ function EditTaskModal({ isOpen, onClose, task, onUpdate, darkMode }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim() || !due) return;
-    onUpdate({ ...task, title, due, status });
+    onUpdate(task.id, { title, due, status });
     onClose();
   };
 
@@ -683,26 +683,34 @@ export default function App() {
       return Promise.reject(error);
     }
   );
-  const fetchTasks = async (authToken) => {
-  try {
-    const response = await api.get("/tasks", {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-    });
-    // Keep tasks as an array
-    setTasks(response.data);
-  } catch (error) {
-    console.error("Error fetching tasks:", error);
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      handleSignOut();
-    }
-  }
-};
 
+  const fetchTasks = async (authToken) => {
+    try {
+      if (!authToken) {
+        // Guest → load guest tasks
+        const storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
+        setTasks(storedTasks);
+        return;
+      }
+
+      // Logged-in → fetch from backend
+      const response = await api.get("/tasks", {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+
+      setTasks(response.data);
+      localStorage.setItem("user_tasks", JSON.stringify(response.data));
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };      
   // Save tasks to localStorage
   useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+    if (token) {
+    localStorage.setItem("user_tasks", JSON.stringify(tasks));
+    } else {
+    localStorage.setItem("guest_tasks", JSON.stringify(tasks));
+}
   }, [tasks]);
   
   useEffect(() => {
@@ -739,46 +747,55 @@ export default function App() {
   };
 
   const handleDragEnd = ({ active, over }) => {
-    setActiveTask(null);
-    setOverColumn(null);
-    if (!over) return;
+  setActiveTask(null);
+  setOverColumn(null);
+  if (!over) return;
 
-    const activeId = active.id;
-    const overId = over.id;
+  const activeId = active.id;
+  const overId = over.id;
 
-    if (columns.find((c) => c.key === overId)) {
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.id === activeId ? { ...t, status: overId } : t
-        )
-      );
-      return;
-    }
+  // Check if task is being dropped into a column
+  if (columns.find((c) => c.key === overId)) {
+    // Update UI instantly
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === activeId ? { ...t, status: overId } : t
+      )
+    );
 
-    // Handle reordering within the same status
-    const activeTask = tasks.find((t) => t.id === activeId);
-    const overTask = tasks.find((t) => t.id === overId);
-    if (!activeTask || !overTask) return;
+    // Update backend or localStorage
+    handleUpdateTask(activeId, { status: overId });
+    return;
+  }
 
-    if (activeTask.status === overTask.status) {
-      const filtered = tasks.filter((t) => t.status === activeTask.status);
-      const oldIndex = filtered.findIndex((t) => t.id === activeId);
-      const newIndex = filtered.findIndex((t) => t.id === overId);
+  // Handle reordering within the same status
+  const activeTask = tasks.find((t) => t.id === activeId);
+  const overTask = tasks.find((t) => t.id === overId);
+  if (!activeTask || !overTask) return;
 
-      const reordered = arrayMove(filtered, oldIndex, newIndex);
+  if (activeTask.status === overTask.status) {
+    const filtered = tasks.filter((t) => t.status === activeTask.status);
+    const oldIndex = filtered.findIndex((t) => t.id === activeId);
+    const newIndex = filtered.findIndex((t) => t.id === overId);
 
-      setTasks((prev) => [
-        ...prev.filter((t) => t.status !== activeTask.status),
-        ...reordered,
-      ]);
-    } else {
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.id === activeId ? { ...t, status: overTask.status } : t
-        )
-      );
-    }
-  };
+    const reordered = arrayMove(filtered, oldIndex, newIndex);
+
+    setTasks((prev) => [
+      ...prev.filter((t) => t.status !== activeTask.status),
+      ...reordered,
+    ]);
+  } else {
+    // Moving to a different column
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === activeId ? { ...t, status: overTask.status } : t
+      )
+    );
+
+    // Update backend or localStorage
+    handleUpdateTask(activeId, { status: overTask.status });
+  }
+};
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -788,45 +805,100 @@ export default function App() {
   );
 
   const handleAddTask = async (newTask) => {
-    if (!token) return alert("Please sign in to add tasks.");
-    try {
-      const response = await api.post("/tasks", newTask);
-      const addedTask = response.data;
-      setTasks((prev) => [...prev, addedTask]);
-    } catch (error) {
-      console.error("Error adding task:", error);
+  try {
+    if (!token) {
+      // Guest → Save locally
+      const storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
+      const updatedTasks = [...storedTasks, newTask];
+      localStorage.setItem("guest_tasks", JSON.stringify(updatedTasks));
+      setTasks(updatedTasks);
+      return;
     }
-  };
+
+    // Logged-in → Save on backend
+    const response = await api.post("/tasks", newTask);
+    setTasks((prev) => [...prev, response.data]);
+    localStorage.setItem("user_tasks", JSON.stringify([...tasks, response.data]));
+  } catch (error) {
+    console.error("Error adding task:", error);
+  }
+};
 
   const handleUpdateTask = async (taskId, updatedData) => {
-    if (!token) return;
-    try {
-      const response = await api.put(`/tasks/${taskId}`, updatedData);
-      const updatedTask = response.data;
-      setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? updatedTask : t))
+  try {
+    if (!token) {
+      // Guest → update localStorage
+      let storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
+      storedTasks = storedTasks.map((t) =>
+        t.id === taskId ? { ...t, ...updatedData } : t
       );
-    } catch (error) {
-      console.error("Error updating task:", error);
+      localStorage.setItem("guest_tasks", JSON.stringify(storedTasks));
+      setTasks(storedTasks);
+      return;
     }
-  };
+
+    // Logged-in → update backend
+    const response = await api.put(`/tasks/${taskId}`, updatedData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const updatedTask = response.data;
+    const updatedTasks = tasks.map((t) => (t.id === taskId ? updatedTask : t));
+    setTasks(updatedTasks);
+    localStorage.setItem("user_tasks", JSON.stringify(updatedTasks));
+  } catch (error) {
+    console.error("Error updating task:", error);
+  }
+};
 
   const handleDeleteTask = async (taskId) => {
-    if (!token) return;
-    try {
-      await api.delete(`/tasks/${taskId}`);
-      setTasks((prev) => prev.filter((t) => t.id !== taskId));
-    } catch (error) {
-      console.error("Error deleting task:", error);
+  try {
+    if (!token) {
+      // Guest → delete locally
+      const storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
+      const updatedTasks = storedTasks.filter((t) => t.id !== taskId);
+      localStorage.setItem("guest_tasks", JSON.stringify(updatedTasks));
+      setTasks(updatedTasks);
+      return;
     }
-  };
 
-  const handleToggleDone = (task) => {
-    setTasks((prev) =>
+    // Logged-in → delete on backend
+    await api.delete(`/tasks/${taskId}`);
+    const updatedTasks = tasks.filter((t) => t.id !== taskId);
+    setTasks(updatedTasks);
+    localStorage.setItem("user_tasks", JSON.stringify(updatedTasks));
+  } catch (error) {
+    console.error("Error deleting task:", error);
+  }
+};
+
+const handleToggleDone = async (task) => {
+  const newStatus = task.status === "done" ? "not-started" : "done";
+  handleUpdateTask(task.id, { status: newStatus });
+  // Update UI instantly for responsiveness
+  setTasks((prev) =>
     prev.map((t) =>
-    t.id === task.id ? { ...t, status: t.status === "done" ? "not-started" : "done" } : t
-    ));
-  };
+      t.id === task.id ? { ...t, status: newStatus } : t
+    )
+  );
+  try {
+    // Update backend if logged in
+    if (token) {
+      await handleUpdateTask(task.id, { status: newStatus });
+    } else {
+      // Guest → update localStorage
+      let storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
+      storedTasks = storedTasks.map((t) =>
+        t.id === task.id ? { ...t, status: newStatus } : t
+      );
+      localStorage.setItem("guest_tasks", JSON.stringify(storedTasks));
+    }
+    console.log("Task toggled successfully");
+  } catch (error) {
+    console.error("Error toggling task:", error);
+  }
+};
+
 
   const handleSignup = async (username, email, password, setError, setLoading) => {
     try {
@@ -843,31 +915,39 @@ export default function App() {
   };
 
   const handleSignin = async (email, password, setError, setLoading) => {
-    try {
-      const response = await api.post("/auth/signin", { email, password });
-      const { token, user } = response.data;
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      setToken(token);
-      setUser(user);
-      setIsSignInModalOpen(false);
-      fetchTasks(token);
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Sign in failed. Invalid credentials.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const response = await api.post("/auth/signin", { email, password });
+    const { token, user } = response.data;
+
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+
+    setToken(token);
+    setUser(user);
+
+    // Fetch fresh tasks from backend
+    fetchTasks(token);
+
+    setIsSignInModalOpen(false);
+  } catch (error) {
+    setError("Invalid credentials");
+    console.error("Signin error:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleSignOut = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setToken(null);
     setUser(null);
-    setTasks([]);
+    // Load guest tasks when logging out
+    const guestTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
+    setTasks(guestTasks);
   };
+
   // Filter tasks for Today, This Week, Pending, and Completed tabs
   const today = new Date();
   const zeroedToday = new Date(today);
