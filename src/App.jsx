@@ -698,12 +698,19 @@ export default function App() {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
-      setTasks(response.data);
+      // Normalize tasks → Always provide "id"
+      const normalizedTasks = response.data.map(task => ({
+        ...task,
+        id: task.id || task._id,  // Use MongoDB _id if id is missing
+      }));
+
+      setTasks(normalizedTasks);
       localStorage.setItem("user_tasks", JSON.stringify(response.data));
     } catch (error) {
       console.error("Error fetching tasks:", error);
     }
-  };      
+  };   
+
   // Save tasks to localStorage
   useEffect(() => {
     if (token) {
@@ -817,7 +824,8 @@ export default function App() {
 
     // Logged-in → Save on backend
     const response = await api.post("/tasks", newTask);
-    setTasks((prev) => [...prev, response.data]);
+    const savedTask = { ...response.data, id: response.data._id }; 
+    setTasks((prev) => [...prev, savedTask]);
     localStorage.setItem("user_tasks", JSON.stringify([...tasks, response.data]));
   } catch (error) {
     console.error("Error adding task:", error);
@@ -841,8 +849,8 @@ export default function App() {
     const response = await api.put(`/tasks/${taskId}`, updatedData, {
       headers: { Authorization: `Bearer ${token}` },
     });
-
-    const updatedTask = response.data;
+    
+    const updatedTask = { ...response.data, id: response.data._id };
     const updatedTasks = tasks.map((t) => (t.id === taskId ? updatedTask : t));
     setTasks(updatedTasks);
     localStorage.setItem("user_tasks", JSON.stringify(updatedTasks));
