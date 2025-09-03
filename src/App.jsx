@@ -675,20 +675,18 @@ export default function App() {
 
   useEffect(() => {
   const storedToken = localStorage.getItem("token");
-  setToken(storedToken);
+  const storedUser = localStorage.getItem("user");
 
   if (storedToken) {
-    fetchTasks(storedToken); // Fetch user tasks from backend
+    setToken(storedToken);
+    if (storedUser) setUser(JSON.parse(storedUser));
+    fetchTasks(storedToken); // Load signed-in user's tasks
   } else {
-    const storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
-    setTasks(storedTasks); // Load guest tasks from localStorage
-  }
-
-  const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    setUser(JSON.parse(storedUser));
+    const guestTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
+    setTasks(guestTasks); // Load guest tasks
   }
 }, []);
+
 
 
   const api = axios.create({
@@ -972,6 +970,7 @@ const handleToggleDone = async (task) => {
   const handleSignOut = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("user_tasks");
     setToken(null);
     setUser(null);
     // Load guest tasks when logging out
