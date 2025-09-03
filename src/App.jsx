@@ -657,21 +657,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
 
-  const [tasks, setTasks] = useState(() => {
-    const token = localStorage.getItem("token");
-    const savedTasks = token
-      ? localStorage.getItem("user_tasks")
-      : localStorage.getItem("guest_tasks");
-
-    return savedTasks
-      ? JSON.parse(savedTasks)
-      : [{
-          id: "welcome-task",
-          title: "Welcome!",
-          due: new Date().toISOString().slice(0, 10),
-          status: "in-progress",
-        }];
-  });
+  const [tasks, setTasks] = useState([]); 
 
   useEffect(() => {
   const storedToken = localStorage.getItem("token");
