@@ -658,16 +658,39 @@ export default function App() {
   const [token, setToken] = useState(null);
 
   const [tasks, setTasks] = useState(() => {
-  const savedTasks = localStorage.getItem("tasks");
-  return savedTasks
-    ? JSON.parse(savedTasks)
-    : [{
-        id: "welcome-task",
-        title: "Welcome!",
-        due: new Date().toISOString().slice(0, 10),
-        status: "in-progress",
-      }];
-});
+    const token = localStorage.getItem("token");
+    const savedTasks = token
+      ? localStorage.getItem("user_tasks")
+      : localStorage.getItem("guest_tasks");
+
+    return savedTasks
+      ? JSON.parse(savedTasks)
+      : [{
+          id: "welcome-task",
+          title: "Welcome!",
+          due: new Date().toISOString().slice(0, 10),
+          status: "in-progress",
+        }];
+  });
+
+  useEffect(() => {
+  const storedToken = localStorage.getItem("token");
+  setToken(storedToken);
+
+  if (storedToken) {
+    fetchTasks(storedToken); // Fetch user tasks from backend
+  } else {
+    const storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
+    setTasks(storedTasks); // Load guest tasks from localStorage
+  }
+
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    setUser(JSON.parse(storedUser));
+  }
+}, []);
+
+
   const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   });
