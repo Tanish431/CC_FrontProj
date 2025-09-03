@@ -657,7 +657,13 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
 
-  const [tasks, setTasks] = useState([]); 
+  const [tasks, setTasks] = useState(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+    return JSON.parse(localStorage.getItem("guest_tasks"))
+    }
+    else { return [];}
+  }); 
 
   useEffect(() => {
   const storedToken = localStorage.getItem("token");
