@@ -720,12 +720,15 @@ export default function App() {
 
   // Save tasks to localStorage
   useEffect(() => {
-    if (token) {
-    localStorage.setItem("user_tasks", JSON.stringify(tasks));
+    if (token === null) {
+      // Only save guest tasks if user is NOT signed in
+      localStorage.setItem("guest_tasks", JSON.stringify(tasks));
     } else {
-    localStorage.setItem("guest_tasks", JSON.stringify(tasks));
-}
-  }, [tasks]);
+      // Only save user tasks if signed in
+      localStorage.setItem("user_tasks", JSON.stringify(tasks));
+    }
+  }, [tasks, token]);
+
   
   useEffect(() => {
     document.body.classList.toggle('light-mode', !darkMode);
