@@ -36,7 +36,7 @@ import { AiOutlineDelete } from "react-icons/ai";
 // Due Function
 function getDueStatus(due, today) {
   const dueDate = new Date(due);
-  const diffTime = dueDate.setHours(0,0,0,0) - today.setHours(0,0,0,0);
+  const diffTime = dueDate.setHours(0, 0, 0, 0) - today.setHours(0, 0, 0, 0);
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
   if (diffDays > 0) {
@@ -49,8 +49,15 @@ function getDueStatus(due, today) {
 }
 
 // Task Card
-function TaskCard({ task, onEdit, onDelete, onToggleDone, activeTab}) {
-  const {attributes, listeners, setNodeRef, transform, transition, isDragging,} = useSortable({ id: task.id });
+function TaskCard({ task, onEdit, onDelete, onToggleDone, activeTab }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -63,7 +70,7 @@ function TaskCard({ task, onEdit, onDelete, onToggleDone, activeTab}) {
     task.status === "done"
       ? { text: "🎉 Well Done!!", className: "due-green" }
       : getDueStatus(task.due, today);
-  
+
   const stopDrag = (e) => {
     e.stopPropagation();
     e.preventDefault();
@@ -78,7 +85,9 @@ function TaskCard({ task, onEdit, onDelete, onToggleDone, activeTab}) {
       style={style}
       {...attributes}
       {...listeners}
-      className={`task-card group relative ${activeTab === "status" ? "" : "non-status"}`}
+      className={`task-card group relative ${
+        activeTab === "status" ? "" : "non-status"
+      }`}
     >
       {activeTab === "status" ? (
         <>
@@ -175,27 +184,57 @@ function TaskCard({ task, onEdit, onDelete, onToggleDone, activeTab}) {
 }
 
 // Column
-function Column({ id, title, tasks, setEditTask, setDeleteTask, handleToggleDone, activeTab }) {
+function Column({
+  id,
+  title,
+  tasks,
+  setEditTask,
+  setDeleteTask,
+  handleToggleDone,
+  activeTab,
+}) {
   const { setNodeRef } = useDroppable({ id });
 
   return (
     <div
       ref={setNodeRef}
-      className={`column ${title.replace(/\s+/g, '-').toLowerCase()}`}
+      className={`column ${title.replace(/\s+/g, "-").toLowerCase()}`}
     >
-      <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+      <h3
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+        }}
+      >
         {title}
-        {id === 'done' && activeTab === 'status' && (
+        {id === "done" && activeTab === "status" && (
           <span className="done-indicator" title="Completed">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <circle cx="9" cy="9" r="8" fill="#16a34a" />
-              <path d="M6 9.5L8 11.5L12 7.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M6 9.5L8 11.5L12 7.5"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </span>
         )}
       </h3>
 
-      <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext
+        items={tasks.map((t) => t.id)}
+        strategy={verticalListSortingStrategy}
+      >
         <div className="non-status-view" style={{ minHeight: "50px" }}>
           {tasks.length === 0 ? (
             <p
@@ -305,32 +344,35 @@ function NewTaskModal({ isOpen, onClose, onAddTask, darkMode }) {
                 }}
                 format="dd/MM/yyyy"
                 renderInput={(params) => (
-                  <TextField {...params} sx={{ input: { color: darkMode ? "#fff" : "#000" } }} />
+                  <TextField
+                    {...params}
+                    sx={{ input: { color: darkMode ? "#fff" : "#000" } }}
+                  />
                 )}
               />
             </LocalizationProvider>
           </ThemeProvider>
-          
+
           <ThemeProvider theme={pickerTheme}>
-              <FormControl fullWidth>
-            <label>Status</label>
-            <Select
-              labelId="status-label"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              sx={{
-                color: darkMode ? "#fff" : "#000",
-                backgroundColor: darkMode ? "#222" : "#f9f9f9",
-                borderRadius: "6px",
-                "& .MuiSvgIcon-root": {
+            <FormControl fullWidth>
+              <label>Status</label>
+              <Select
+                labelId="status-label"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                sx={{
                   color: darkMode ? "#fff" : "#000",
-                },
-              }}
-            >
-              <MenuItem value="not-started">Not Started</MenuItem>
-              <MenuItem value="in-progress">In Progress</MenuItem>
-              <MenuItem value="done">Done</MenuItem>
-            </Select>
+                  backgroundColor: darkMode ? "#222" : "#f9f9f9",
+                  borderRadius: "6px",
+                  "& .MuiSvgIcon-root": {
+                    color: darkMode ? "#fff" : "#000",
+                  },
+                }}
+              >
+                <MenuItem value="not-started">Not Started</MenuItem>
+                <MenuItem value="in-progress">In Progress</MenuItem>
+                <MenuItem value="done">Done</MenuItem>
+              </Select>
             </FormControl>
           </ThemeProvider>
 
@@ -422,7 +464,10 @@ function EditTaskModal({ isOpen, onClose, task, onUpdate, darkMode }) {
                 }}
                 format="dd/MM/yyyy"
                 renderInput={(params) => (
-                  <TextField {...params} sx={{ input: { color: darkMode ? "#fff" : "#000" } }} />
+                  <TextField
+                    {...params}
+                    sx={{ input: { color: darkMode ? "#fff" : "#000" } }}
+                  />
                 )}
               />
             </LocalizationProvider>
@@ -430,7 +475,7 @@ function EditTaskModal({ isOpen, onClose, task, onUpdate, darkMode }) {
 
           <ThemeProvider theme={pickerTheme}>
             <FormControl fullWidth variant="outlined" sx={{ mt: 1 }}>
-          <label>Status</label>
+              <label>Status</label>
               <Select
                 labelId="edit-status-label"
                 value={status}
@@ -561,7 +606,6 @@ function SignInModal({ isOpen, onClose, onSignIn }) {
   );
 }
 
-
 // SignUpModal
 function SignUpModal({ isOpen, onClose, onSignUp }) {
   const [username, setUsername] = useState("");
@@ -632,16 +676,15 @@ function SignUpModal({ isOpen, onClose, onSignUp }) {
   );
 }
 
-
 // Main App Component
 export default function App() {
   // Add viewport meta tag for mobile responsiveness
   useEffect(() => {
     let meta = document.querySelector('meta[name="viewport"]');
     if (!meta) {
-      meta = document.createElement('meta');
-      meta.name = 'viewport';
-      meta.content = 'width=device-width, initial-scale=1.0';
+      meta = document.createElement("meta");
+      meta.name = "viewport";
+      meta.content = "width=device-width, initial-scale=1.0";
       document.head.appendChild(meta);
     }
   }, []);
@@ -651,7 +694,7 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [deleteTask, setDeleteTask] = useState(null);
-  const [darkMode, setDarkMode] = useState(true); 
+  const [darkMode, setDarkMode] = useState(true);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -660,26 +703,25 @@ export default function App() {
   const [tasks, setTasks] = useState(() => {
     const token = localStorage.getItem("token");
     if (token) {
-    return JSON.parse(localStorage.getItem("guest_tasks"))
+      return JSON.parse(localStorage.getItem("guest_tasks"));
+    } else {
+      return [];
     }
-    else { return [];}
-  }); 
+  });
 
   useEffect(() => {
-  const storedToken = localStorage.getItem("token");
-  const storedUser = localStorage.getItem("user");
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
 
-  if (storedToken) {
-    setToken(storedToken);
-    if (storedUser) setUser(JSON.parse(storedUser));
-    fetchTasks(storedToken); // Load signed-in user's tasks
-  } else {
-    const guestTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
-    setTasks(guestTasks); // Load guest tasks
-  }
-}, []);
-
-
+    if (storedToken) {
+      setToken(storedToken);
+      if (storedUser) setUser(JSON.parse(storedUser));
+      fetchTasks(storedToken); // Load signed-in user's tasks
+    } else {
+      const guestTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
+      setTasks(guestTasks); // Load guest tasks
+    }
+  }, []);
 
   const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
@@ -701,7 +743,8 @@ export default function App() {
     try {
       if (!authToken) {
         // Guest → load guest tasks
-        const storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
+        const storedTasks =
+          JSON.parse(localStorage.getItem("guest_tasks")) || [];
         setTasks(storedTasks);
         return;
       }
@@ -712,9 +755,9 @@ export default function App() {
       });
 
       // Normalize tasks → Always provide "id"
-      const normalizedTasks = response.data.map(task => ({
+      const normalizedTasks = response.data.map((task) => ({
         ...task,
-        id: task.id || task._id,  // Use MongoDB _id if id is missing
+        id: task.id || task._id, // Use MongoDB _id if id is missing
       }));
 
       setTasks(normalizedTasks);
@@ -722,7 +765,7 @@ export default function App() {
     } catch (error) {
       console.error("Error fetching tasks:", error);
     }
-  };   
+  };
 
   // Save tasks to localStorage
   useEffect(() => {
@@ -735,11 +778,10 @@ export default function App() {
     }
   }, [tasks, token]);
 
-  
   useEffect(() => {
-    document.body.classList.toggle('light-mode', !darkMode);
+    document.body.classList.toggle("light-mode", !darkMode);
   }, [darkMode]);
-  
+
   const columns = [
     { key: "not-started", title: "Not Started" },
     { key: "in-progress", title: "In Progress" },
@@ -747,7 +789,8 @@ export default function App() {
   ];
   const findColumn = (id) => {
     if (tasks.todo.find((task) => task.id === id)) return "not-started";
-    if (tasks["in-progress"].find((task) => task.id === id)) return "in-progress";
+    if (tasks["in-progress"].find((task) => task.id === id))
+      return "in-progress";
     if (tasks.done.find((task) => task.id === id)) return "done";
     return null;
   };
@@ -770,55 +813,53 @@ export default function App() {
   };
 
   const handleDragEnd = ({ active, over }) => {
-  setActiveTask(null);
-  setOverColumn(null);
-  if (!over) return;
+    setActiveTask(null);
+    setOverColumn(null);
+    if (!over) return;
 
-  const activeId = active.id;
-  const overId = over.id;
+    const activeId = active.id;
+    const overId = over.id;
 
-  // Check if task is being dropped into a column
-  if (columns.find((c) => c.key === overId)) {
-    // Update UI instantly
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === activeId ? { ...t, status: overId } : t
-      )
-    );
+    // Check if task is being dropped into a column
+    if (columns.find((c) => c.key === overId)) {
+      // Update UI instantly
+      setTasks((prev) =>
+        prev.map((t) => (t.id === activeId ? { ...t, status: overId } : t))
+      );
 
-    // Update backend or localStorage
-    handleUpdateTask(activeId, { status: overId });
-    return;
-  }
+      // Update backend or localStorage
+      handleUpdateTask(activeId, { status: overId });
+      return;
+    }
 
-  // Handle reordering within the same status
-  const activeTask = tasks.find((t) => t.id === activeId);
-  const overTask = tasks.find((t) => t.id === overId);
-  if (!activeTask || !overTask) return;
+    // Handle reordering within the same status
+    const activeTask = tasks.find((t) => t.id === activeId);
+    const overTask = tasks.find((t) => t.id === overId);
+    if (!activeTask || !overTask) return;
 
-  if (activeTask.status === overTask.status) {
-    const filtered = tasks.filter((t) => t.status === activeTask.status);
-    const oldIndex = filtered.findIndex((t) => t.id === activeId);
-    const newIndex = filtered.findIndex((t) => t.id === overId);
+    if (activeTask.status === overTask.status) {
+      const filtered = tasks.filter((t) => t.status === activeTask.status);
+      const oldIndex = filtered.findIndex((t) => t.id === activeId);
+      const newIndex = filtered.findIndex((t) => t.id === overId);
 
-    const reordered = arrayMove(filtered, oldIndex, newIndex);
+      const reordered = arrayMove(filtered, oldIndex, newIndex);
 
-    setTasks((prev) => [
-      ...prev.filter((t) => t.status !== activeTask.status),
-      ...reordered,
-    ]);
-  } else {
-    // Moving to a different column
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === activeId ? { ...t, status: overTask.status } : t
-      )
-    );
+      setTasks((prev) => [
+        ...prev.filter((t) => t.status !== activeTask.status),
+        ...reordered,
+      ]);
+    } else {
+      // Moving to a different column
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === activeId ? { ...t, status: overTask.status } : t
+        )
+      );
 
-    // Update backend or localStorage
-    handleUpdateTask(activeId, { status: overTask.status });
-  }
-};
+      // Update backend or localStorage
+      handleUpdateTask(activeId, { status: overTask.status });
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -828,105 +869,119 @@ export default function App() {
   );
 
   const handleAddTask = async (newTask) => {
-  try {
-    if (!token) {
-      // Guest → Save locally
-      const storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
-      const updatedTasks = [...storedTasks, newTask];
-      localStorage.setItem("guest_tasks", JSON.stringify(updatedTasks));
-      setTasks(updatedTasks);
-      return;
-    }
+    try {
+      if (!token) {
+        // Guest → Save locally
+        const storedTasks =
+          JSON.parse(localStorage.getItem("guest_tasks")) || [];
+        const updatedTasks = [...storedTasks, newTask];
+        localStorage.setItem("guest_tasks", JSON.stringify(updatedTasks));
+        setTasks(updatedTasks);
+        return;
+      }
 
-    // Logged-in → Save on backend
-    const response = await api.post("/tasks", newTask);
-    const savedTask = { ...response.data, id: response.data._id }; 
-    setTasks((prev) => [...prev, savedTask]);
-    localStorage.setItem("user_tasks", JSON.stringify([...tasks, response.data]));
-  } catch (error) {
-    console.error("Error adding task:", error);
-  }
-};
+      // Logged-in → Save on backend
+      const response = await api.post("/tasks", newTask);
+      const savedTask = { ...response.data, id: response.data._id };
+      setTasks((prev) => [...prev, savedTask]);
+      localStorage.setItem(
+        "user_tasks",
+        JSON.stringify([...tasks, response.data])
+      );
+    } catch (error) {
+      console.error("Error adding task:", error);
+    }
+  };
 
   const handleUpdateTask = async (taskId, updatedData) => {
-  try {
-    if (!token) {
-      // Guest → update localStorage
-      let storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
-      storedTasks = storedTasks.map((t) =>
-        t.id === taskId ? { ...t, ...updatedData } : t
-      );
-      localStorage.setItem("guest_tasks", JSON.stringify(storedTasks));
-      setTasks(storedTasks);
-      return;
-    }
+    try {
+      if (!token) {
+        // Guest → update localStorage
+        let storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
+        storedTasks = storedTasks.map((t) =>
+          t.id === taskId ? { ...t, ...updatedData } : t
+        );
+        localStorage.setItem("guest_tasks", JSON.stringify(storedTasks));
+        setTasks(storedTasks);
+        return;
+      }
 
-    // Logged-in → update backend
-    const response = await api.put(`/tasks/${taskId}`, updatedData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    
-    const updatedTask = { ...response.data, id: response.data._id };
-    const updatedTasks = tasks.map((t) => (t.id === taskId ? updatedTask : t));
-    setTasks(updatedTasks);
-    localStorage.setItem("user_tasks", JSON.stringify(updatedTasks));
-  } catch (error) {
-    console.error("Error updating task:", error);
-  }
-};
+      // Logged-in → update backend
+      const response = await api.put(`/tasks/${taskId}`, updatedData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const updatedTask = { ...response.data, id: response.data._id };
+      const updatedTasks = tasks.map((t) =>
+        t.id === taskId ? updatedTask : t
+      );
+      setTasks(updatedTasks);
+      localStorage.setItem("user_tasks", JSON.stringify(updatedTasks));
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  };
 
   const handleDeleteTask = async (taskId) => {
-  try {
-    if (!token) {
-      // Guest → delete locally
-      const storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
-      const updatedTasks = storedTasks.filter((t) => t.id !== taskId);
-      localStorage.setItem("guest_tasks", JSON.stringify(updatedTasks));
-      setTasks(updatedTasks);
-      return;
-    }
-
-    // Logged-in → delete on backend
-    await api.delete(`/tasks/${taskId}`);
-    const updatedTasks = tasks.filter((t) => t.id !== taskId);
-    setTasks(updatedTasks);
-    localStorage.setItem("user_tasks", JSON.stringify(updatedTasks));
-  } catch (error) {
-    console.error("Error deleting task:", error);
-  }
-};
-
-const handleToggleDone = async (task) => {
-  const newStatus = task.status === "done" ? "not-started" : "done";
-  handleUpdateTask(task.id, { status: newStatus });
-  // Update UI instantly for responsiveness
-  setTasks((prev) =>
-    prev.map((t) =>
-      t.id === task.id ? { ...t, status: newStatus } : t
-    )
-  );
-  try {
-    // Update backend if logged in
-    if (token) {
-      await handleUpdateTask(task.id, { status: newStatus });
-    } else {
-      // Guest → update localStorage
-      let storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
-      storedTasks = storedTasks.map((t) =>
-        t.id === task.id ? { ...t, status: newStatus } : t
-      );
-      localStorage.setItem("guest_tasks", JSON.stringify(storedTasks));
-    }
-    console.log("Task toggled successfully");
-  } catch (error) {
-    console.error("Error toggling task:", error);
-  }
-};
-
-
-  const handleSignup = async (username, email, password, setError, setLoading) => {
     try {
-      const response = await api.post("/auth/signup", { username, email, password });
+      if (!token) {
+        // Guest → delete locally
+        const storedTasks =
+          JSON.parse(localStorage.getItem("guest_tasks")) || [];
+        const updatedTasks = storedTasks.filter((t) => t.id !== taskId);
+        localStorage.setItem("guest_tasks", JSON.stringify(updatedTasks));
+        setTasks(updatedTasks);
+        return;
+      }
+
+      // Logged-in → delete on backend
+      await api.delete(`/tasks/${taskId}`);
+      const updatedTasks = tasks.filter((t) => t.id !== taskId);
+      setTasks(updatedTasks);
+      localStorage.setItem("user_tasks", JSON.stringify(updatedTasks));
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
+  };
+
+  const handleToggleDone = async (task) => {
+    const newStatus = task.status === "done" ? "not-started" : "done";
+    handleUpdateTask(task.id, { status: newStatus });
+    // Update UI instantly for responsiveness
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t))
+    );
+    try {
+      // Update backend if logged in
+      if (token) {
+        await handleUpdateTask(task.id, { status: newStatus });
+      } else {
+        // Guest → update localStorage
+        let storedTasks = JSON.parse(localStorage.getItem("guest_tasks")) || [];
+        storedTasks = storedTasks.map((t) =>
+          t.id === task.id ? { ...t, status: newStatus } : t
+        );
+        localStorage.setItem("guest_tasks", JSON.stringify(storedTasks));
+      }
+      console.log("Task toggled successfully");
+    } catch (error) {
+      console.error("Error toggling task:", error);
+    }
+  };
+
+  const handleSignup = async (
+    username,
+    email,
+    password,
+    setError,
+    setLoading
+  ) => {
+    try {
+      const response = await api.post("/auth/signup", {
+        username,
+        email,
+        password,
+      });
       setIsSignUpModalOpen(false);
       alert("Sign up successful! Please sign in.");
     } catch (error) {
@@ -939,28 +994,27 @@ const handleToggleDone = async (task) => {
   };
 
   const handleSignin = async (email, password, setError, setLoading) => {
-  try {
-    const response = await api.post("/auth/signin", { email, password });
-    const { token, user } = response.data;
+    try {
+      const response = await api.post("/auth/signin", { email, password });
+      const { token, user } = response.data;
 
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
 
-    setToken(token);
-    setUser(user);
+      setToken(token);
+      setUser(user);
 
-    // Fetch fresh tasks from backend
-    fetchTasks(token);
+      // Fetch fresh tasks from backend
+      fetchTasks(token);
 
-    setIsSignInModalOpen(false);
-  } catch (error) {
-    setError("Invalid credentials");
-    console.error("Signin error:", error);
-  } finally {
-    setLoading(false);
-  }
-};
-
+      setIsSignInModalOpen(false);
+    } catch (error) {
+      setError("Invalid credentials");
+      console.error("Signin error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSignOut = () => {
     localStorage.removeItem("token");
@@ -987,7 +1041,8 @@ const handleToggleDone = async (task) => {
     week: tasks.filter((t) => {
       const taskDate = new Date(t.due);
       taskDate.setHours(0, 0, 0, 0);
-      const diff = (taskDate.getTime() - zeroedToday.getTime()) / (1000 * 60 * 60 * 24);
+      const diff =
+        (taskDate.getTime() - zeroedToday.getTime()) / (1000 * 60 * 60 * 24);
       return t.status !== "done" && diff >= 0 && diff < 7;
     }),
     pending: tasks.filter((t) => {
@@ -1000,19 +1055,45 @@ const handleToggleDone = async (task) => {
 
   // Today's date for display
   const todayString = today.toLocaleDateString(undefined, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   return (
     <div className="app">
-      <header className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 0', marginBottom: '12px' }}>
-        <div className="todo-heading" style={{ font: 'var(--text-head)', fontSize: '2.5em', letterSpacing: '2px', color: 'var(--text-main)', fontWeight: "bold"}}>TO-DO LIST</div>
+      <header
+        className="app-header"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "16px 0",
+          marginBottom: "12px",
+        }}
+      >
+        <div
+          className="todo-heading"
+          style={{
+            font: "var(--text-head)",
+            fontSize: "2.5em",
+            letterSpacing: "2px",
+            color: "var(--text-main)",
+            fontWeight: "bold",
+          }}
+        >
+          TO-DO LIST
+        </div>
         <button
           className="mode-toggle-btn"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.5em', color: 'var(--accent)' }}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "1.5em",
+            color: "var(--accent)",
+          }}
           onClick={() => setDarkMode((prev) => !prev)}
           aria-label="Toggle light mode"
         >
@@ -1039,42 +1120,36 @@ const handleToggleDone = async (task) => {
           </button>
         ))}
         <div className="user-actions">
-              {user ? (
-                <>
-                  <span className="welcome-text">
-                    Welcome, {user.username}!    
-                  </span>
-                  <button onClick={handleSignOut} className="sign-out-btn">
-                    Sign Out
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setIsSignInModalOpen(true)}
-                    className="auth-btn"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => setIsSignUpModalOpen(true)}
-                    className="auth-btn"
-                  >
-                    Sign Up
-                  </button>
-                </>
-              )}
-            </div>
+          {user ? (
+            <>
+              <span className="welcome-text">Welcome, {user.username}!</span>
+              <button onClick={handleSignOut} className="sign-out-btn">
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => setIsSignInModalOpen(true)}
+                className="auth-btn"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => setIsSignUpModalOpen(true)}
+                className="auth-btn"
+              >
+                Sign Up
+              </button>
+            </>
+          )}
+        </div>
         <button className="new-task-btn" onClick={() => setIsModalOpen(true)}>
           + New Task
         </button>
       </div>
 
-      {activeTab === "today" && (
-        <div className="date-title">
-          {todayString}
-        </div>
-      )}
+      {activeTab === "today" && <div className="date-title">{todayString}</div>}
 
       {activeTab === "status" && (
         <DndContext
@@ -1115,7 +1190,7 @@ const handleToggleDone = async (task) => {
           )}
         </DndContext>
       )}
-      
+
       {activeTab === "week" && filteredTasks["week"] && (
         <div className="week-list">
           {filteredTasks["week"].length === 0 ? (
@@ -1124,22 +1199,32 @@ const handleToggleDone = async (task) => {
             (() => {
               // Group tasks by weekday name
               const tasksByDay = {};
-              filteredTasks["week"].forEach(task => {
+              filteredTasks["week"].forEach((task) => {
                 const dateObj = new Date(task.due);
-                const dayName = dateObj.toLocaleDateString(undefined, { weekday: 'long' });
+                const dayName = dateObj.toLocaleDateString(undefined, {
+                  weekday: "long",
+                });
                 if (!tasksByDay[dayName]) tasksByDay[dayName] = [];
                 tasksByDay[dayName].push(task);
               });
               // Sort days by order in week
-              const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+              const weekDays = [
+                "Sunday",
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+              ];
               return weekDays
-                .filter(day => tasksByDay[day])
-                .map(day => (
-                  <div key={day} style={{ marginBottom: '24px' }}>
+                .filter((day) => tasksByDay[day])
+                .map((day) => (
+                  <div key={day} style={{ marginBottom: "24px" }}>
                     <div className="date-title">{day}</div>
                     {tasksByDay[day]
                       .sort((a, b) => new Date(a.due) - new Date(b.due))
-                      .map(task => (
+                      .map((task) => (
                         <TaskCard
                           key={task.id}
                           task={task}
@@ -1156,26 +1241,31 @@ const handleToggleDone = async (task) => {
         </div>
       )}
 
-      { ["today", "pending", "completed"].includes(activeTab) && filteredTasks[activeTab] && (
-        <div className="filtered-tasks">
-          {filteredTasks[activeTab].length === 0 ? (
-            <p className="empty-text">No tasks here {activeTab!=="completed" ? '🎉' : '☹️'}</p>
-          ) : (
-            [...filteredTasks[activeTab]]
-              .sort((a, b) => (a.status === "done" ? 1 : b.status === "done" ? -1 : 0))
-              .map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onEdit={setEditTask}
-                  onDelete={setDeleteTask}
-                  onToggleDone={handleToggleDone}
-                  activeTab={activeTab}
-                />
-              ))
-          )}
-        </div>
-      )}
+      {["today", "pending", "completed"].includes(activeTab) &&
+        filteredTasks[activeTab] && (
+          <div className="filtered-tasks">
+            {filteredTasks[activeTab].length === 0 ? (
+              <p className="empty-text">
+                No tasks here {activeTab !== "completed" ? "🎉" : "☹️"}
+              </p>
+            ) : (
+              [...filteredTasks[activeTab]]
+                .sort((a, b) =>
+                  a.status === "done" ? 1 : b.status === "done" ? -1 : 0
+                )
+                .map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onEdit={setEditTask}
+                    onDelete={setDeleteTask}
+                    onToggleDone={handleToggleDone}
+                    activeTab={activeTab}
+                  />
+                ))
+            )}
+          </div>
+        )}
 
       <NewTaskModal
         isOpen={isModalOpen}
@@ -1198,11 +1288,11 @@ const handleToggleDone = async (task) => {
         task={deleteTask}
       />
       <SignInModal
-          isOpen={isSignInModalOpen}
-          onClose={() => setIsSignInModalOpen(false)}
-          onSignIn={handleSignin}
-          darkMode={darkMode}
-        />
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+        onSignIn={handleSignin}
+        darkMode={darkMode}
+      />
       <SignUpModal
         isOpen={isSignUpModalOpen}
         onClose={() => setIsSignUpModalOpen(false)}

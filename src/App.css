@@ -1,7 +1,7 @@
 /* === THEME VARIABLES === */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Nata+Sans:wght@700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Nata+Sans:wght@700&display=swap");
 
 :root {
   --bg-main: #111;
@@ -22,9 +22,9 @@
   --delete: #dc2626;
   --edit: #7fbef1;
   --shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  --font-main: 'Inter', Arial, sans-serif;
-  --text-head: 'Montserrat', sans-serif;
-  --col-head: 'Nata Sans', sans-serif;
+  --font-main: "Inter", Arial, sans-serif;
+  --text-head: "Montserrat", sans-serif;
+  --col-head: "Nata Sans", sans-serif;
 }
 .light-mode {
   --bg-main: #f7f7f7;
@@ -53,11 +53,11 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   overflow-x: hidden; /* Prevent horizontal scroll */
 }
-
 
 body {
   margin: 0;
@@ -70,9 +70,9 @@ body {
   justify-content: center;
   transition: background 0.3s, color 0.3s;
   background-image: url("./assets/pattern.svg");
-  background-repeat: repeat;       
-  background-size: auto;           
-  background-position: top left;   
+  background-repeat: repeat;
+  background-size: auto;
+  background-position: top left;
 }
 
 .app {
@@ -124,7 +124,7 @@ body {
   display: flex;
   gap: 20px;
   align-items: flex-start;
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
   justify-content: center;
 }
 
@@ -138,12 +138,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  flex: 1 1 200px; 
+  flex: 1 1 200px;
   max-width: 420px;
   min-width: 250px;
 }
 
-.column h3{
+.column h3 {
   text-align: center;
   font: var(--col-head);
   font-weight: bold;
@@ -181,10 +181,10 @@ body {
   box-sizing: border-box;
   touch-action: none;
 }
-.done .task-card{
+.done .task-card {
   background: var(--bg-card-done);
 }
-.in-progress .task-card{
+.in-progress .task-card {
   background: var(--bg-card-ip);
 }
 
@@ -202,13 +202,13 @@ body {
   word-break: break-word;
   white-space: pre-line;
   overflow-wrap: anywhere;
-  padding-right: 20px 
+  padding-right: 20px;
 }
 
 .task-card.dragging {
   opacity: 0.9;
   background: var(--accent);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   transform: scale(1.05);
 }
 
@@ -216,7 +216,7 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -228,7 +228,7 @@ body {
   padding: 20px;
   border-radius: 12px;
   width: 350px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   animation: fadeIn 0.2s ease;
   color: var(--text-main);
 }
@@ -244,7 +244,6 @@ body {
   word-break: break-word;
   white-space: pre-line;
   overflow-wrap: anywhere;
-
 }
 
 .modal form {
@@ -288,8 +287,14 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .task-due {
@@ -315,7 +320,6 @@ body {
   background-color: rgba(239, 68, 68, 0.2);
   color: rgb(220, 38, 38);
 }
-
 
 .task-card button {
   position: absolute;
@@ -376,7 +380,7 @@ body {
   color: var(--accent);
 }
 
-.task-card.non-status{
+.task-card.non-status {
   width: 95%;
 }
 
@@ -399,7 +403,6 @@ body {
   gap: 6px;
 }
 
-
 .action-buttons .icon-btn {
   background-color: transparent;
   border: none;
@@ -409,7 +412,6 @@ body {
   color: var(--edit);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
-
 
 .action-buttons .icon-btn:hover {
   background-color: rgba(107, 114, 128, 0.1);
@@ -478,17 +480,18 @@ body {
     gap: 10px;
   }
 
-  .user-actions{
+  .user-actions {
     margin: 0 !important;
   }
 
+  .user-actions button {
+    color: var(--btn-text) !important;
+  }
   .new-task-btn {
     margin-left: 0;
     margin-top: 8px;
     width: auto;
   }
-
-
 }
 
 /* === Mobiles === */
@@ -517,14 +520,17 @@ body {
     padding: 10px;
     font-size: 1em;
   }
-  .user-actions{
+  .user-actions {
     margin: 0 !important;
+  }
+  .user-actions button {
+    color: var(--btn-text) !important;
   }
   .new-task-btn {
     width: 100%;
     margin: 6px 0 0;
   }
- .auth-btn,
+  .auth-btn,
   .sign-out-btn {
     margin-top: 15px;
     width: 100%;
@@ -541,7 +547,6 @@ body {
     font-size: 1.7em !important;
     text-align: center;
   }
-  
 }
 
 /* === Extra Small Screens === */
@@ -560,8 +565,11 @@ body {
     padding: 8px;
   }
 
-  .user-actions{
+  .user-actions {
     margin: 0 !important;
+  }
+  .user-actions button {
+    color: var(--btn-text) !important;
   }
 
   .new-task-btn {
@@ -593,10 +601,10 @@ body {
   margin-bottom: 8px;
 }
 
-.user-actions{
+.user-actions {
   margin-left: 180px;
 }
-.user-actions button{
+.user-actions button {
   margin-right: 10px;
   border-color: var(--text-main);
   cursor: pointer;
